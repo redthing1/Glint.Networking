@@ -18,7 +18,7 @@ using Random = Nez.Random;
 namespace Glint.Networking.Game {
     public class GameSyncer {
         public LimeClient netNode { get; }
-        public int remId { get; }
+        public long remId => netNode.remId;
         public int netUps { get; }
         public int systemUps { get; }
         public int ringBufferSize { get; }
