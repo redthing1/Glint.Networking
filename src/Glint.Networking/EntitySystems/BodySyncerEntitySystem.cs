@@ -12,20 +12,12 @@ using Nez.Tweens;
 namespace Glint.Networking.EntitySystems {
     public class BodySyncerEntitySystem : EntitySystem {
         private readonly GameSyncer syncer;
-        private readonly InterpolationType interpolationType;
         public Func<string, uint, Entity> createSyncedEntity;
         public const string SYNC_PREFIX = "_sync";
 
-        public enum InterpolationType {
-            None,
-            Linear, // linear smoothing
-            Cubic, // cubic smoothing
-        }
-
-        public BodySyncerEntitySystem(GameSyncer syncer, InterpolationType interpolationType, Matcher matcher) :
+        public BodySyncerEntitySystem(GameSyncer syncer, Matcher matcher) :
             base(matcher) {
             this.syncer = syncer;
-            this.interpolationType = interpolationType;
             syncer.gamePeerConnected += gamePeerConnected;
             syncer.gamePeerDisconnected += gamePeerDisconnected;
         }
@@ -130,12 +122,12 @@ namespace Glint.Networking.EntitySystems {
 
                     var timeOffsetSec = timeOffsetMs / 1000f;
 
-                    switch (interpolationType) {
-                        case InterpolationType.None:
+                    switch (body.interpolationType) {
+                        case SyncBody.InterpolationType.None:
                             bodyUpdate.applyTo(body); // just apply the update
                             break;
-                        case InterpolationType.Linear:
-                        case InterpolationType.Cubic: {
+                        case SyncBody.InterpolationType.Linear:
+                        case SyncBody.InterpolationType.Cubic: {
                             // we set velocity immediately, but we tween the position
                             // save the current position
                             var realPos = bodyUpdate.pos.unpack();
@@ -150,9 +142,9 @@ namespace Glint.Networking.EntitySystems {
                                 GlintLogger.LogLevel.Trace);
                             // figure out ease type
                             var easeType = default(EaseType);
-                            if (interpolationType == InterpolationType.Linear) {
+                            if (body.interpolationType == SyncBody.InterpolationType.Linear) {
                                 easeType = EaseType.Linear;
-                            } else if (interpolationType == InterpolationType.Cubic) {
+                            } else if (body.interpolationType == SyncBody.InterpolationType.Cubic) {
                                 easeType = EaseType.CubicOut;
                             }
 
