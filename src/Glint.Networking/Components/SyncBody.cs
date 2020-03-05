@@ -3,15 +3,15 @@ using Microsoft.Xna.Framework;
 using Nez.Tweens;
 
 namespace Glint.Networking.Components {
-    public class SyncBody : KinBody {
+    public abstract class SyncBody : KinBody {
         public float nextUpdate = 0;
         public uint bodyId = (uint) Nez.Random.NextInt(int.MaxValue);
         public uint ownerUid;
         public ITween<Vector2>? posTween;
         public ITween<float>? angleTween;
-
-        public virtual uint syncTag { get; set; } = 0U;
-        public virtual InterpolationType interpolationType { get; set; } = InterpolationType.Linear;
+        
+        public abstract uint syncTag { get; }
+        public abstract InterpolationType interpolationType { get; }
         
         public enum InterpolationType {
             None,
