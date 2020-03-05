@@ -40,7 +40,7 @@ namespace Glint.Networking.EntitySystems {
 
         protected override void Process(List<Entity> entities) {
             base.Process(entities);
-            
+
             // wait for connection to be valid
             if (!syncer.connected) return;
 
@@ -88,9 +88,14 @@ namespace Glint.Networking.EntitySystems {
             var remoteBodyUpdates = 0U;
             var localBodyUpdates = 0U;
             while (syncer.bodyUpdates.tryDequeue(out var bodyUpdate)) {
-                // // dump update type
-                var kind = bodyUpdate.sourceUid == syncer.uid ? "LOCAL" : "REMOTE";
-                Global.log.writeLine($"    > {kind}, frame {bodyUpdate.time - NetworkTime.startTime}", GlintLogger.LogLevel.Trace);
+#if DEBUG
+                if (syncer.debug) {
+                    // dump update type
+                    var kind = bodyUpdate.sourceUid == syncer.uid ? "LOCAL" : "REMOTE";
+                    Global.log.writeLine($"    > {kind}, frame {bodyUpdate.time - NetworkTime.startTime}",
+                        GlintLogger.LogLevel.Trace);
+                }
+#endif
 
                 // for now, don't apply local body updates
                 // TODO: confirm local bodies with local body updates

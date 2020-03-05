@@ -38,7 +38,9 @@ namespace Glint.Networking.Game {
         private ITimer nodeUpdateTimer;
         public string host { get; }
         public int port { get; }
-
+#if DEBUG
+        public bool debug { get; } = true;
+#endif
 
         public GameSyncer(string host, int port, int netUps, int systemUps, int ringBufferSize, float timeout) {
             this.host = host;
