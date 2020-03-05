@@ -17,6 +17,7 @@ namespace Glint.Networking.Handlers.Client {
                 }
 
                 syncer.connected = msg.here;
+                syncer.connectionStatusChanged?.Invoke(syncer.connected);
                 return true;
             }
 

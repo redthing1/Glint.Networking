@@ -25,6 +25,7 @@ namespace Glint.Networking.Game {
         public List<GamePeer> peers { get; } = new List<GamePeer>();
         public uint uid { get; } = (uint) Random.NextInt(int.MaxValue);
         public bool connected = false;
+        public Action<bool> connectionStatusChanged;
         public MessageHandlerContainer handlerContainer { get; } = new MessageHandlerContainer();
         public Action<GamePeer> gamePeerConnected;
         public Action<GamePeer> gamePeerDisconnected;
@@ -143,6 +144,7 @@ namespace Glint.Networking.Game {
 
             Global.log.writeLine("confirmed disconnected from server", GlintLogger.LogLevel.Error);
             connected = false;
+            connectionStatusChanged?.Invoke(connected);
         }
     }
 }

@@ -89,8 +89,8 @@ namespace Glint.Networking.EntitySystems {
             var localBodyUpdates = 0U;
             while (syncer.bodyUpdates.tryDequeue(out var bodyUpdate)) {
                 // // dump update type
-                // var kind = bodyUpdate.sourceUid == syncer.uid ? "LOCAL" : "REMOTE";
-                // Global.log.writeLine($"    > {kind}, frame {bodyUpdate.gameFrame}", GlintLogger.LogLevel.Trace);
+                var kind = bodyUpdate.sourceUid == syncer.uid ? "LOCAL" : "REMOTE";
+                Global.log.writeLine($"    > {kind}, frame {bodyUpdate.time - NetworkTime.startTime}", GlintLogger.LogLevel.Trace);
 
                 // for now, don't apply local body updates
                 // TODO: confirm local bodies with local body updates
