@@ -14,6 +14,9 @@ namespace Glint.Networking.Handlers.Client {
                 case BodyKinematicUpdateMessage kinMsg:
                     update = new BodyKinUpdate();
                     break;
+                case BodyLifetimeUpdateMessage lifMsg:
+                    update = new BodyLifetimeUpdate();
+                    break;
                 default:
                     Global.log.writeLine(
                         $"failed to create message queue clone of unmatched message type {msg.GetType()}",
