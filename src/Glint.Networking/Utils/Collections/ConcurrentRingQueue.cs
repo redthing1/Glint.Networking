@@ -9,6 +9,7 @@ namespace Glint.Networking.Utils.Collections {
     public class ConcurrentRingQueue<T> : IReadOnlyCollection<T> {
         private ConcurrentQueue<T> queue = new ConcurrentQueue<T>();
         public readonly int capacity;
+        public bool full => queue.Count >= capacity;
 
         public ConcurrentRingQueue(int capacity) {
             this.capacity = capacity;
@@ -16,7 +17,7 @@ namespace Glint.Networking.Utils.Collections {
 
         public void enqueue(T item) {
             // check capacity. if we're at capacity, we drop an item
-            while (queue.Count >= capacity) {
+            while (full) {
                 queue.TryDequeue(out _);
             }
             // now that we're below capacity again, we add the item

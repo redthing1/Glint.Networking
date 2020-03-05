@@ -184,10 +184,14 @@ namespace Glint.Networking.EntitySystems {
 
 #if DEBUG
             if (syncer.debug) {
-                if (localBodyUpdates + remoteBodyUpdates > 0) {
+                var totalBodyUpdates = localBodyUpdates + remoteBodyUpdates;
+                if (totalBodyUpdates > 0) {
                     Global.log.writeLine(
                         $"processed ({localBodyUpdates} local) and ({remoteBodyUpdates} remote) body updates this frame",
                         GlintLogger.LogLevel.Trace);
+                    if (totalBodyUpdates >= syncer.bodyUpdates.capacity) {
+                        Global.log.writeLine($"body update ring buffer is full, some updates may have been dropped", GlintLogger.LogLevel.Trace);
+                    }
                 }
             }
 #endif
