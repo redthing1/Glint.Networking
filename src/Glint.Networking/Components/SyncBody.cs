@@ -41,6 +41,7 @@ namespace Glint.Networking.Components {
             // send destroy signal
             var syncer = Core.Services.GetService<GameSyncer>();
             var lifetimeMessage = syncer.createGameUpdate<BodyLifetimeUpdateMessage>();
+            lifetimeMessage.createFrom(this);
             lifetimeMessage.exists = false;
             syncer.sendGameUpdate(lifetimeMessage);
         }
