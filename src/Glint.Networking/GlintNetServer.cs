@@ -114,6 +114,9 @@ namespace Glint.Networking {
                     GlintLogger.LogLevel.Error);
                 return;
             }
+            // remove the user
+            context.clients.Remove(clientPeer);
+            Global.log.writeLine($"removed client {clientPeer}", GlintLogger.LogLevel.Trace);
 
             Global.log.writeLine($"sending goodbye on behalf of {peer.RemoteUniqueIdentifier}",
                 GlintLogger.LogLevel.Trace);

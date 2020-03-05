@@ -17,7 +17,7 @@ namespace Glint.Networking.Handlers.Server {
             }
         }
 
-        protected override void process(PresenceMessage msg) {
+        protected override bool process(PresenceMessage msg) {
             base.process(msg);
             var presence = msg.here ? "HERE" : "GONE";
             Global.log.writeLine($"presence update from {msg.myRemId}, {presence}", GlintLogger.LogLevel.Information);
@@ -26,24 +26,26 @@ namespace Glint.Networking.Handlers.Server {
                 var clientPeer = new GamePeer(msg.myRemId, msg.myUid);
                 context.clients.Add(clientPeer);
                 Global.log.writeLine($"added client {clientPeer}", GlintLogger.LogLevel.Trace);
-            } else {
-                // remove the user
-                var clientPeer = context.clients.Single(x => x.uid == msg.myUid);
-                context.clients.Remove(clientPeer);
-                Global.log.writeLine($"removed client {clientPeer}", GlintLogger.LogLevel.Trace);
+                return true;
             }
+
+            // we don't relay byes
+            return false;
         }
 
         protected override void postprocess(PresenceMessage msg) {
             base.postprocess(msg);
 
-            // whenever someone's new, we want to re-introduce everyone else to them
-            Global.log.writeLine($"resending {context.clients.Count} introductions", GlintLogger.LogLevel.Trace);
-            foreach (var client in context.clients) {
-                var intro = context.serverNode.getMessage<PresenceMessage>();
-                intro.createFrom(client);
-                intro.here = true;
-                context.serverNode.sendToAll(intro);
+
+            if (msg.here) {
+                // whenever someone's new, we want to re-introduce everyone else to them
+                Global.log.writeLine($"resending {context.clients.Count} introductions", GlintLogger.LogLevel.Trace);
+                foreach (var client in context.clients) {
+                    var intro = context.serverNode.getMessage<PresenceMessage>();
+                    intro.createFrom(client);
+                    intro.here = true;
+                    context.serverNode.sendToAll(intro);
+                }
             }
         }
     }

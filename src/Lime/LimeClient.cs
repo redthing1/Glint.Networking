@@ -8,5 +8,9 @@ namespace Lime {
         public NetConnection connect(string host, in int port, string hail) {
             return lidgrenClient.Connect(host, port, lidgrenClient.CreateMessage(hail));
         }
+
+        public void disconnect() {
+            lidgrenClient.Disconnect("yeet");
+        }
     }
 }

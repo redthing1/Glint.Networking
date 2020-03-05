@@ -18,7 +18,6 @@ using Random = Nez.Random;
 namespace Glint.Networking.Game {
     public class GameSyncer {
         public LimeClient netNode { get; }
-        public long remId => netNode.remId;
         public int netUps { get; }
         public int systemUps { get; }
         public int ringBufferSize { get; }
@@ -77,6 +76,17 @@ namespace Glint.Networking.Game {
             netNode.start();
             netNode.connect(host, port, "hail");
             nodeUpdateTimer = Core.Schedule(1f / netUps, true, timer => { netNode.update(); });
+        }
+
+        public void disconnect() {
+            Global.log.writeLine($"requesting disconnect from server",
+                GlintLogger.LogLevel.Information);
+            var intro = netNode.getMessage<PresenceMessage>();
+            intro.myRemId = netNode.remId;
+            intro.myUid = uid;
+            intro.here = false;
+            netNode.sendToAll(intro);
+            netNode.disconnect();
         }
 
         public void stop() {

@@ -10,23 +10,26 @@ namespace Glint.Networking.Handlers {
         }
 
         /// <summary>
-        /// process the message before sending it
+        /// process the message before sending it. 
         /// </summary>
         /// <param name="msg"></param>
-        protected virtual void process(TMessage msg) { }
-        
+        /// <returns>whether we should relay the message</returns>
+        protected virtual bool process(TMessage msg) {
+            return true;
+        }
+
         protected virtual void postprocess(TMessage msg) { }
 
         protected virtual bool validate(TMessage msg) => true;
 
         public override bool handle(TMessage msg) {
             var valid = validate(msg);
-            if (valid) {
-                process(msg);
+            if (valid && process(msg)) {
                 context.serverNode.sendToAll(msg); // redistribute the message
                 postprocess(msg);
                 return true;
             }
+
             // log validation error
             Global.log.writeLine($"validation failed for {msg}", GlintLogger.LogLevel.Error);
 
