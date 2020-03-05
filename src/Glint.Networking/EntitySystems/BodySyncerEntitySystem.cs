@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Glint.Networking.Components;
 using Glint.Networking.Game;
+using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
 using Glint.Networking.Utils;
 using Glint.Util;
@@ -62,7 +63,7 @@ namespace Glint.Networking.EntitySystems {
                     body.nextUpdate = Time.TotalTime + 1f / syncer.systemUps;
 
                     // send update message
-                    var bodyUpdate = syncer.netNode.getMessage<BodyUpdateMessage>(); // get message instance
+                    var bodyUpdate = syncer.createGameUpdate<BodyKinematicUpdateMessage>(); // get message instance
                     bodyUpdate.reset();
                     bodyUpdate.createFrom(body);
                     syncer.sendGameUpdate(bodyUpdate);
@@ -130,39 +131,49 @@ namespace Glint.Networking.EntitySystems {
 
                     var timeOffsetSec = timeOffsetMs / 1000f;
 
-                    switch (body.interpolationType) {
-                        case SyncBody.InterpolationType.None:
-                            bodyUpdate.applyTo(body); // just apply the update
-                            break;
-                        case SyncBody.InterpolationType.Linear:
-                        case SyncBody.InterpolationType.Cubic: {
-                            // we set velocity immediately, but we tween the position
-                            // save the current position
-                            var realPos = bodyUpdate.pos.unpack();
-                            var realAngle = bodyUpdate.angle;
-                            body.velocity = bodyUpdate.vel.unpack();
-                            // check existing tween, and cancel
-                            body.cancelTweens();
+                    switch (bodyUpdate) {
+                        case BodyKinUpdate kinUpdate: {
+                            switch (body.interpolationType) {
+                                case SyncBody.InterpolationType.None:
+                                    bodyUpdate.applyTo(body); // just apply the update
+                                    break;
+                                case SyncBody.InterpolationType.Linear:
+                                case SyncBody.InterpolationType.Cubic: {
+                                    // we set velocity immediately, but we tween the position
+                                    // save the current position
+                                    var realPos = kinUpdate.pos.unpack();
+                                    var realAngle = kinUpdate.angle;
+                                    body.velocity = kinUpdate.vel.unpack();
+                                    // check existing tween, and cancel
+                                    body.cancelTweens();
 
-                            // guess interpolation delay by frame difference
-                            var interpolationDelay = timeOffsetSec;
-                            Global.log.writeLine($"interpolating with delay {interpolationDelay}",
-                                GlintLogger.LogLevel.Trace);
-                            // figure out ease type
-                            var easeType = default(EaseType);
-                            if (body.interpolationType == SyncBody.InterpolationType.Linear) {
-                                easeType = EaseType.Linear;
-                            } else if (body.interpolationType == SyncBody.InterpolationType.Cubic) {
-                                easeType = EaseType.CubicOut;
+                                    // guess interpolation delay by frame difference
+                                    var interpolationDelay = timeOffsetSec;
+                                    Global.log.writeLine($"interpolating with delay {interpolationDelay}",
+                                        GlintLogger.LogLevel.Trace);
+                                    // figure out ease type
+                                    var easeType = default(EaseType);
+                                    if (body.interpolationType == SyncBody.InterpolationType.Linear) {
+                                        easeType = EaseType.Linear;
+                                    } else if (body.interpolationType == SyncBody.InterpolationType.Cubic) {
+                                        easeType = EaseType.CubicOut;
+                                    }
+
+                                    body.posTween = body.Tween(nameof(body.pos), realPos, interpolationDelay)
+                                        .SetEaseType(easeType);
+                                    body.posTween.Start();
+                                    body.angleTween = body.Tween(nameof(body.angle), realAngle, interpolationDelay)
+                                        .SetEaseType(easeType);
+                                    body.angleTween.Start();
+
+                                    break;
+                                }
                             }
-
-                            body.posTween = body.Tween(nameof(body.pos), realPos, interpolationDelay)
-                                .SetEaseType(easeType);
-                            body.posTween.Start();
-                            body.angleTween = body.Tween(nameof(body.angle), realAngle, interpolationDelay)
-                                .SetEaseType(easeType);
-                            body.angleTween.Start();
-
+                            break;
+                        }
+                        case BodyLifetimeUpdate lifetimeUpdate: {
+                            // apply to body
+                            lifetimeUpdate.applyTo(body);
                             break;
                         }
                     }

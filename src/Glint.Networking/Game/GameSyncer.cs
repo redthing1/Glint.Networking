@@ -115,7 +115,7 @@ namespace Glint.Networking.Game {
             netNode.sendToAll(msg);
         }
 
-        public void preprocessGameUpdate(GameUpdateMessage msg) {
+        private void preprocessGameUpdate(GameUpdateMessage msg) {
             // check if we don't know the sender of this message, and then update their connectivity if necessary
             if (peers.All(x => x.uid != msg.sourceUid)) {
                 // this is a relayed message, so we don't know the remId. we set an empty for now

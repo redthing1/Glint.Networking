@@ -1,5 +1,8 @@
+using Glint.Networking.Game;
+using Glint.Networking.Messages;
 using Glint.Physics;
 using Microsoft.Xna.Framework;
+using Nez;
 using Nez.Tweens;
 
 namespace Glint.Networking.Components {
@@ -35,6 +38,11 @@ namespace Glint.Networking.Components {
         public override void OnRemovedFromEntity() {
             base.OnRemovedFromEntity();
             cancelTweens();
+            // send destroy signal
+            var syncer = Core.Services.GetService<GameSyncer>();
+            var lifetimeMessage = syncer.createGameUpdate<BodyLifetimeUpdateMessage>();
+            lifetimeMessage.exists = false;
+            syncer.sendGameUpdate(lifetimeMessage);
         }
     }
 }
