@@ -26,14 +26,19 @@ namespace Glint.Networking {
             context = new GlintNetServerContext(config);
         }
 
-        private void configureHandlers() {
-            handlerContainer.register(new BodyRelayMessageHandler(context));
+        private void configureDefaultHandlers() {
+            // presence
             handlerContainer.register(new PresenceRelayHandler(context));
+            // body updates
+            handlerContainer.registerAs<BodyUpdateMessage, BodyKinematicUpdateMessage>(
+                new BodyRelayMessageHandler(context));
+            handlerContainer.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
+                new BodyRelayMessageHandler(context));
         }
 
         public void configure() {
             Global.log.verbosity = context.config.verbosity;
-            configureHandlers();
+            configureDefaultHandlers();
         }
 
         public void run(CancellationTokenSource tokenSource = null) {
@@ -114,6 +119,7 @@ namespace Glint.Networking {
                     GlintLogger.LogLevel.Error);
                 return;
             }
+
             // remove the user
             context.clients.Remove(clientPeer);
             Global.log.writeLine($"removed client {clientPeer}", GlintLogger.LogLevel.Trace);

@@ -10,7 +10,12 @@ namespace Glint.Networking.Handlers {
             (MessageHandler<TMessage>) handlers[typeof(TMessage)];
 
         public void register<TMessage>(MessageHandler<TMessage> handler) where TMessage : LimeMessage =>
+            registerAs<TMessage, TMessage>(handler);
+
+        public void registerAs<TRegistration, TMessage>(MessageHandler<TRegistration> handler)
+            where TMessage : LimeMessage where TRegistration : LimeMessage {
             handlers[typeof(TMessage)] = handler;
+        }
 
         public bool canHandle(Type type) => handlers.ContainsKey(type);
 
