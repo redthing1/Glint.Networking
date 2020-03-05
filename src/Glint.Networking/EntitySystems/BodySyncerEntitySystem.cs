@@ -182,11 +182,15 @@ namespace Glint.Networking.EntitySystems {
                 remoteBodyUpdates++;
             }
 
-            if (localBodyUpdates + remoteBodyUpdates > 0) {
-                Global.log.writeLine(
-                    $"processed ({localBodyUpdates} local) and ({remoteBodyUpdates} remote) body updates this frame",
-                    GlintLogger.LogLevel.Trace);
+#if DEBUG
+            if (syncer.debug) {
+                if (localBodyUpdates + remoteBodyUpdates > 0) {
+                    Global.log.writeLine(
+                        $"processed ({localBodyUpdates} local) and ({remoteBodyUpdates} remote) body updates this frame",
+                        GlintLogger.LogLevel.Trace);
+                }
             }
+#endif
         }
     }
 }

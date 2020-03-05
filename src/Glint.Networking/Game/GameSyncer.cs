@@ -39,15 +39,17 @@ namespace Glint.Networking.Game {
         public string host { get; }
         public int port { get; }
 #if DEBUG
-        public bool debug { get; } = true;
+        public bool debug { get; }
 #endif
 
-        public GameSyncer(string host, int port, int netUps, int systemUps, int ringBufferSize, float timeout) {
+        public GameSyncer(string host, int port, int netUps, int systemUps, int ringBufferSize, float timeout,
+            bool debug = false) {
             this.host = host;
             this.port = port;
             this.netUps = netUps;
             this.systemUps = systemUps;
             this.ringBufferSize = ringBufferSize;
+            this.debug = debug;
 
             netNode = new LimeClient(new LimeNode.Configuration {
                 peerConfig = new NetPeerConfiguration("Glint") {
@@ -136,11 +138,19 @@ namespace Glint.Networking.Game {
             var msgType = msg.GetType();
             if (msg is GameUpdateMessage gameUpdateMessage) { // preprocess all game updates
                 preprocessGameUpdate(gameUpdateMessage);
-                Global.log.writeLine($"received game update {gameUpdateMessage} from {msg.source}",
-                    GlintLogger.LogLevel.Trace);
+#if DEBUG
+                if (debug) {
+                    Global.log.writeLine($"received game update {gameUpdateMessage} from {msg.source}",
+                        GlintLogger.LogLevel.Trace);
+                }
+#endif
             } else { // log misc message
-                Global.log.writeLine($"received message {msgType.Name} from {msg.source}",
-                    GlintLogger.LogLevel.Trace);
+#if DEBUG
+                if (debug) {
+                    Global.log.writeLine($"received message {msgType.Name} from {msg.source}",
+                        GlintLogger.LogLevel.Trace);
+                }
+#endif
             }
 
             if (handlerContainer.canHandle(msgType)) {
