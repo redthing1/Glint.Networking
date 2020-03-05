@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Glint.Networking.Components;
 using Glint.Networking.Game.Updates;
 using Glint.Networking.Handlers;
 using Glint.Networking.Handlers.Client;
@@ -61,6 +62,10 @@ namespace Glint.Networking.Game {
             bodyUpdates = new ConcurrentRingQueue<BodyUpdate>(this.ringBufferSize);
             wireEvents();
             registerHandlers();
+        }
+
+        public bool ownsBody(SyncBody body) {
+            return body.ownerUid == uid;
         }
 
         private void registerHandlers() {
