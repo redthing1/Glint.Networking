@@ -43,14 +43,16 @@ namespace Lime {
         private void buildInstances(Assembly messageAssembly) {
             Type networkMsgType = typeof(LimeMessage);
             foreach (Type type in messageAssembly.GetTypes()) {
-                if (type.IsSubclassOf(networkMsgType) && !messagesByType.ContainsKey(type)) {
+                if (!type.IsAbstract && type.IsSubclassOf(networkMsgType) && !messagesByType.ContainsKey(type)) {
                     if (messages.Count == Byte.MaxValue)
                         throw new ApplicationException(
-                            "The maximum number of network messages has been reached - you need to use fewer message types in this project");
-                    var msg = (LimeMessage) type.GetConstructor(Type.EmptyTypes)?.Invoke(new object[] { });
-                    if (msg == null) {
+                            "maximum number of network messages has been reached (can no longer identify messages using byte)");
+                    var msgConstructor = type.GetConstructor(Type.EmptyTypes);
+                    if (msgConstructor == null) {
                         throw new ApplicationException($"no valid constructor found for message {type}");
                     }
+
+                    var msg = (LimeMessage) msgConstructor?.Invoke(new object[] { });
 
                     msg.id = (byte) messages.Count;
                     messages[msg.id] = msg;
