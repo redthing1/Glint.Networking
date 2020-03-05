@@ -4,7 +4,7 @@ using Lime.Messages;
 using MsgPack.Serialization;
 
 namespace Glint.Networking.Messages {
-    public class GameUpdateMessage : LimeMessage {
+    public abstract class GameUpdateMessage : LimeMessage {
         [MessagePackMember(0)] public long time { get; set; }
         [MessagePackMember(1)] public uint sourceUid { get; set; }
 
