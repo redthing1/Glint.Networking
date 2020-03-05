@@ -104,7 +104,15 @@ namespace Glint.Networking.EntitySystems {
                 var timeOffsetMs = timeNow - bodyUpdate.time;
                 if (body == null) {
                     // no matching body. for now we should create one
-                    var syncNt = createSyncedEntity($"{SYNC_PREFIX}_{bodyUpdate.bodyId}", bodyUpdate.syncTag);
+                    var syncEntityName = $"{SYNC_PREFIX}_{bodyUpdate.bodyId}";
+                    var syncNt = createSyncedEntity(syncEntityName, bodyUpdate.syncTag);
+                    if (syncNt == null) {
+                        Glint.Global.log.writeLine(
+                            $"failed to create synced entity {syncEntityName} with tag {bodyUpdate.syncTag}",
+                            GlintLogger.LogLevel.Error);
+                        continue;
+                    }
+
                     body = syncNt.GetComponent<SyncBody>();
                     bodyUpdate.applyTo(body); // this is a new body, immediately apply our first update
                     body.Entity = syncNt;
