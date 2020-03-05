@@ -24,7 +24,7 @@ namespace Glint.Networking.Game {
         public int ringBufferSize { get; }
         public List<GamePeer> peers { get; } = new List<GamePeer>();
         public uint uid { get; } = (uint) Random.NextInt(int.MaxValue);
-        public bool connected = false;
+        public bool connected;
         public Action<bool> connectionStatusChanged;
         public MessageHandlerContainer handlerContainer { get; } = new MessageHandlerContainer();
         public Action<GamePeer> gamePeerConnected;
