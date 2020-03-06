@@ -49,7 +49,9 @@ namespace Glint.Networking.Game {
             this.netUps = netUps;
             this.systemUps = systemUps;
             this.ringBufferSize = ringBufferSize;
+#if DEBUG
             this.debug = debug;
+#endif
 
             netNode = new LimeClient(new LimeNode.Configuration {
                 peerConfig = new NetPeerConfiguration("Glint") {
