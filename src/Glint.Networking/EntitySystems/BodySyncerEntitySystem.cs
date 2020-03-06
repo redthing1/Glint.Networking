@@ -149,8 +149,13 @@ namespace Glint.Networking.EntitySystems {
 
                                     // guess interpolation delay by frame difference
                                     var interpolationDelay = timeOffsetSec;
-                                    Global.log.writeLine($"interpolating with delay {interpolationDelay}",
-                                        GlintLogger.LogLevel.Trace);
+#if DEBUG
+                                    if (syncer.debug) {
+                                        Global.log.writeLine($"interpolating with delay {interpolationDelay}",
+                                            GlintLogger.LogLevel.Trace);
+                                    }
+#endif
+
                                     // figure out ease type
                                     var easeType = default(EaseType);
                                     if (body.interpolationType == SyncBody.InterpolationType.Linear) {
@@ -169,6 +174,7 @@ namespace Glint.Networking.EntitySystems {
                                     break;
                                 }
                             }
+
                             break;
                         }
                         case BodyLifetimeUpdate lifetimeUpdate: {
@@ -190,7 +196,9 @@ namespace Glint.Networking.EntitySystems {
                         $"processed ({localBodyUpdates} local) and ({remoteBodyUpdates} remote) body updates this frame",
                         GlintLogger.LogLevel.Trace);
                     if (totalBodyUpdates >= syncer.bodyUpdates.capacity) {
-                        Global.log.writeLine($"body update ring buffer is full ({syncer.bodyUpdates.capacity}), some updates may have been dropped", GlintLogger.LogLevel.Trace);
+                        Global.log.writeLine(
+                            $"body update ring buffer is full ({syncer.bodyUpdates.capacity}), some updates may have been dropped",
+                            GlintLogger.LogLevel.Trace);
                     }
                 }
             }
