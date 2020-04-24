@@ -20,7 +20,7 @@ namespace Glint.Networking.Handlers.Client {
                 default:
                     Global.log.writeLine(
                         $"failed to create message queue clone of unmatched message type {msg.GetType()}",
-                        GlintLogger.LogLevel.Error);
+                        Logger.Verbosity.Error);
                     return false; // unable to handle (unrecognized)
             }
 

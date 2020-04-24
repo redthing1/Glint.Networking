@@ -9,13 +9,13 @@ namespace Glint.Networking {
             node.onLog += (level, s) => {
                 switch (level) {
                     case LogLevel.Trace:
-                        Global.log.writeLine(s, GlintLogger.LogLevel.Trace);
+                        Global.log.writeLine(s, Logger.Verbosity.Trace);
                         break;
                     case LogLevel.Warning:
-                        Global.log.writeLine(s, GlintLogger.LogLevel.Warning);
+                        Global.log.writeLine(s, Logger.Verbosity.Warning);
                         break;
                     case LogLevel.Error:
-                        Global.log.writeLine(s, GlintLogger.LogLevel.Error);
+                        Global.log.writeLine(s, Logger.Verbosity.Error);
                         break;
                 }
             };

@@ -54,11 +54,11 @@ namespace Glint.Networking {
             serverNode.configureGlint();
             serverNode.initialize();
 
-            Global.log.writeLine("configured networking host", GlintLogger.LogLevel.Information);
+            Global.log.writeLine("configured networking host", Logger.Verbosity.Information);
 
             // log config in trace
-            Global.log.writeLine($"timeout: {context.config.timeout:n2}s", GlintLogger.LogLevel.Trace);
-            Global.log.writeLine($"update: {context.config.updateInterval}ms", GlintLogger.LogLevel.Trace);
+            Global.log.writeLine($"timeout: {context.config.timeout:n2}s", Logger.Verbosity.Trace);
+            Global.log.writeLine($"update: {context.config.updateInterval}ms", Logger.Verbosity.Trace);
 
             context.serverNode = serverNode;
             serverNode.onPeerConnected += onPeerConnected;
@@ -66,7 +66,7 @@ namespace Glint.Networking {
             serverNode.onMessage += onMessage;
             serverNode.start();
             Global.log.writeLine($"created server node on port {serverNode.lidgrenServer.Port}",
-                GlintLogger.LogLevel.Information);
+                Logger.Verbosity.Information);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var nextHeartbeat = 0L;
@@ -92,7 +92,7 @@ namespace Glint.Networking {
             var msgType = msg.GetType();
             if (context.config.logMessages) {
                 Global.log.writeLine($"received message {msgType.Name} from {msg.source}",
-                    GlintLogger.LogLevel.Trace);
+                    Logger.Verbosity.Trace);
             }
 
             // dynamically resolve the handlers
@@ -100,32 +100,32 @@ namespace Glint.Networking {
                 var handler = handlerContainer.resolve(msgType);
                 handler.handle(msg);
             } else {
-                Global.log.writeLine($"no handler found for {msgType.Name}", GlintLogger.LogLevel.Error);
+                Global.log.writeLine($"no handler found for {msgType.Name}", Logger.Verbosity.Error);
             }
         }
 
         private void onPeerConnected(NetConnection peer) {
             Global.log.writeLine($"connected new peer {peer} (before: {context.clients.Count})",
-                GlintLogger.LogLevel.Information);
+                Logger.Verbosity.Information);
         }
 
         private void onPeerDisconnected(NetConnection peer) {
             Global.log.writeLine($"disconnected peer {peer} (before: {context.clients.Count})",
-                GlintLogger.LogLevel.Information);
+                Logger.Verbosity.Information);
             // broadcast a goodbye on behalf of that peer
             var clientPeer = context.clients.SingleOrDefault(x => x.remId == peer.RemoteUniqueIdentifier);
             if (clientPeer == null) {
                 Global.log.writeLine($"failed to send goodbye for nonexistent peer {peer.RemoteUniqueIdentifier}",
-                    GlintLogger.LogLevel.Error);
+                    Logger.Verbosity.Error);
                 return;
             }
 
             // remove the user
             context.clients.Remove(clientPeer);
-            Global.log.writeLine($"removed client {clientPeer}", GlintLogger.LogLevel.Trace);
+            Global.log.writeLine($"removed client {clientPeer}", Logger.Verbosity.Trace);
 
             Global.log.writeLine($"sending goodbye on behalf of {peer.RemoteUniqueIdentifier}",
-                GlintLogger.LogLevel.Trace);
+                Logger.Verbosity.Trace);
             var bye = context.serverNode.getMessage<PresenceMessage>();
             bye.createFrom(clientPeer);
             bye.here = false;

@@ -18,7 +18,7 @@ namespace Glint.Networking {
             public int port;
             public int updateInterval;
             public int heartbeatInterval = 2000;
-            public GlintLogger.LogLevel verbosity;
+            public Logger.Verbosity verbosity;
             public bool logMessages;
             public float timeout;
         }

@@ -31,7 +31,7 @@ namespace Glint.Networking.Handlers {
             }
 
             // log validation error
-            Global.log.writeLine($"validation failed for {msg}", GlintLogger.LogLevel.Error);
+            Global.log.writeLine($"validation failed for {msg}", Logger.Verbosity.Error);
 
             return false;
         }

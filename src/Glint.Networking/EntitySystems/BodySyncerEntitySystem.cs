@@ -50,7 +50,7 @@ namespace Glint.Networking.EntitySystems {
                         // peer no longer exists!
                         entitiesToRemove.Add(entity);
                         Global.log.writeLine($"removing body for nonexistent peer {body.ownerUid}",
-                            GlintLogger.LogLevel.Trace);
+                            Logger.Verbosity.Trace);
                     }
 
                     continue;
@@ -77,7 +77,7 @@ namespace Glint.Networking.EntitySystems {
             var newEntities = new List<Entity>(entities.Except(entitiesToRemove));
 
             // handle queued updates
-            // Global.log.writeLine($"== body syncer entity system - update() called, pending: {syncer.bodyUpdates.Count}", GlintLogger.LogLevel.Trace);
+            // Global.log.writeLine($"== body syncer entity system - update() called, pending: {syncer.bodyUpdates.Count}", Verbosity.Trace);
             var remoteBodyUpdates = 0U;
             var localBodyUpdates = 0U;
             while (syncer.bodyUpdates.tryDequeue(out var bodyUpdate)) {
@@ -86,7 +86,7 @@ namespace Glint.Networking.EntitySystems {
                     // dump update type
                     var kind = bodyUpdate.sourceUid == syncer.uid ? "LOCAL" : "REMOTE";
                     Global.log.writeLine($"    > {kind}, frame {bodyUpdate.time - NetworkTime.startTime}",
-                        GlintLogger.LogLevel.Trace);
+                        Logger.Verbosity.Trace);
                 }
 #endif
 
@@ -110,7 +110,7 @@ namespace Glint.Networking.EntitySystems {
                     if (syncNt == null) {
                         Glint.Global.log.writeLine(
                             $"failed to create synced entity {syncEntityName} with tag {bodyUpdate.syncTag}",
-                            GlintLogger.LogLevel.Error);
+                            Logger.Verbosity.Error);
                         continue;
                     }
 
@@ -126,7 +126,7 @@ namespace Glint.Networking.EntitySystems {
                         // we're getting updates from the future? log in relative time
                         Global.log.writeLine(
                             $"received an update {timeOffsetMs}ms in the future (current: {NetworkTime.timeSinceStart}), (frame {bodyUpdate.time - NetworkTime.startTime})",
-                            GlintLogger.LogLevel.Warning);
+                            Logger.Verbosity.Warning);
                     }
 
                     var timeOffsetSec = timeOffsetMs / 1000f;
@@ -152,7 +152,7 @@ namespace Glint.Networking.EntitySystems {
 #if DEBUG
                                     if (syncer.debug) {
                                         Global.log.writeLine($"interpolating with delay {interpolationDelay}",
-                                            GlintLogger.LogLevel.Trace);
+                                            Logger.Verbosity.Trace);
                                     }
 #endif
 
@@ -194,11 +194,11 @@ namespace Glint.Networking.EntitySystems {
                 if (totalBodyUpdates > 0) {
                     Global.log.writeLine(
                         $"processed ({localBodyUpdates} local) and ({remoteBodyUpdates} remote) body updates this frame",
-                        GlintLogger.LogLevel.Trace);
+                        Logger.Verbosity.Trace);
                     if (totalBodyUpdates >= syncer.bodyUpdates.capacity) {
                         Global.log.writeLine(
                             $"body update ring buffer is full ({syncer.bodyUpdates.capacity}), some updates may have been dropped",
-                            GlintLogger.LogLevel.Trace);
+                            Logger.Verbosity.Trace);
                     }
                 }
             }
