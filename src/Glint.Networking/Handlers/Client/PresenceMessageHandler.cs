@@ -12,8 +12,7 @@ namespace Glint.Networking.Handlers.Client {
             // my own presence updates connected state
             if (msg.myUid == syncer.uid) {
                 if (!syncer.connected && msg.here) {
-                    Global.log.writeLine($"confirmed connection to server ({msg.source}",
-                        Logger.Verbosity.Information);
+                    Global.log.info($"confirmed connection to server ({msg.source}");
                 }
 
                 syncer.connected = msg.here;
@@ -32,18 +31,17 @@ namespace Glint.Networking.Handlers.Client {
                 // update nick (in case we don't have it)
                 if (peer.remId != msg.myRemId) {
                     peer.remId = msg.myRemId;
-                    Global.log.writeLine($"updated nickname to {peer.remId} for uid: {peer.uid} from introduction",
-                        Logger.Verbosity.Trace);
+                    Global.log.trace($"updated nickname to {peer.remId} for uid: {peer.uid} from introduction");
                 }
 
-                Global.log.writeLine($"received hello from {peer}", Logger.Verbosity.Information);
+                Global.log.info($"received hello from {peer}");
                 syncer.connectivityUpdates.Enqueue(new ConnectivityUpdate(peer,
                     ConnectivityUpdate.ConnectionStatus.Connected));
                 syncer.gamePeerConnected(peer);
             } else {
                 var peer = syncer.peers.Single(x => x.uid == msg.myUid);
                 syncer.peers.Remove(peer);
-                Global.log.writeLine($"received bye from {peer}", Logger.Verbosity.Information);
+                Global.log.info($"received bye from {peer}");
                 syncer.gamePeerDisconnected(peer);
             }
 

@@ -20,12 +20,12 @@ namespace Glint.Networking.Handlers.Server {
         protected override bool process(PresenceMessage msg) {
             base.process(msg);
             var presence = msg.here ? "HERE" : "GONE";
-            Global.log.writeLine($"presence update from {msg.myRemId}, {presence}", Logger.Verbosity.Information);
+            Global.log.info($"presence update from {msg.myRemId}, {presence}");
             if (msg.here) {
                 // save the user
                 var clientPeer = new GamePeer(msg.myRemId, msg.myUid);
                 context.clients.Add(clientPeer);
-                Global.log.writeLine($"added client {clientPeer}", Logger.Verbosity.Trace);
+                Global.log.trace($"added client {clientPeer}");
                 return true;
             }
 
@@ -39,7 +39,7 @@ namespace Glint.Networking.Handlers.Server {
 
             if (msg.here) {
                 // whenever someone's new, we want to re-introduce everyone else to them
-                Global.log.writeLine($"resending {context.clients.Count} introductions", Logger.Verbosity.Trace);
+                Global.log.trace($"resending {context.clients.Count} introductions");
                 foreach (var client in context.clients) {
                     var intro = context.serverNode.getMessage<PresenceMessage>();
                     intro.createFrom(client);

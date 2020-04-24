@@ -18,9 +18,8 @@ namespace Glint.Networking.Handlers.Client {
                     update = new BodyLifetimeUpdate();
                     break;
                 default:
-                    Global.log.writeLine(
-                        $"failed to create message queue clone of unmatched message type {msg.GetType()}",
-                        Logger.Verbosity.Error);
+                    Global.log.err(
+                        $"failed to create message queue clone of unmatched message type {msg.GetType()}");
                     return false; // unable to handle (unrecognized)
             }
 

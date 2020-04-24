@@ -85,16 +85,14 @@ namespace Glint.Networking.Game {
 
         public void connect() {
             // open connection and go
-            Global.log.writeLine($"connecting to server node ({host}:{port})",
-                Logger.Verbosity.Information);
+            Global.log.info($"connecting to server node ({host}:{port})");
             netNode.start();
             netNode.connect(host, port, "hail");
             nodeUpdateTimer = Core.Schedule(1f / netUps, true, timer => { netNode.update(); });
         }
 
         public void disconnect() {
-            Global.log.writeLine($"requesting disconnect from server",
-                Logger.Verbosity.Information);
+            Global.log.info($"requesting disconnect from server");
             var intro = netNode.getMessage<PresenceMessage>();
             intro.myRemId = netNode.remId;
             intro.myUid = uid;
@@ -130,7 +128,7 @@ namespace Glint.Networking.Game {
                 // this is a relayed message, so we don't know the remId. we set an empty for now
                 var peer = new GamePeer(0, msg.sourceUid);
                 peers.Add(peer);
-                Global.log.writeLine($"implicitly introduced to peer {peer}", Logger.Verbosity.Trace);
+                Global.log.trace($"implicitly introduced to peer {peer}");
                 connectivityUpdates.Enqueue(new ConnectivityUpdate(peer,
                     ConnectivityUpdate.ConnectionStatus.Connected));
             }
@@ -142,15 +140,13 @@ namespace Glint.Networking.Game {
                 preprocessGameUpdate(gameUpdateMessage);
 #if DEBUG
                 if (debug) {
-                    Global.log.writeLine($"received game update {gameUpdateMessage} from {msg.source}",
-                        Logger.Verbosity.Trace);
+                    Global.log.trace($"received game update {gameUpdateMessage} from {msg.source}");
                 }
 #endif
             } else { // log misc message
 #if DEBUG
                 if (debug) {
-                    Global.log.writeLine($"received message {msgType.Name} from {msg.source}",
-                        Logger.Verbosity.Trace);
+                    Global.log.trace($"received message {msgType.Name} from {msg.source}");
                 }
 #endif
             }
@@ -159,12 +155,12 @@ namespace Glint.Networking.Game {
                 var handler = handlerContainer.resolve(msgType);
                 var handled = handler.handle(msg);
             } else {
-                Global.log.writeLine($"no handler found for {msgType.Name}", Logger.Verbosity.Error);
+                Global.log.err($"no handler found for {msgType.Name}");
             }
         }
 
         public void onPeerConnected(NetConnection peer) {
-            Global.log.writeLine($"connected new peer {peer}", Logger.Verbosity.Information);
+            Global.log.info($"connected new peer {peer}");
             // once peer (server) connected, send intro
             var intro = netNode.getMessage<PresenceMessage>();
             intro.myRemId = netNode.remId;
@@ -174,9 +170,9 @@ namespace Glint.Networking.Game {
         }
 
         public void onPeerDisconnected(NetConnection peer) {
-            Global.log.writeLine($"disconnected peer {peer}", Logger.Verbosity.Information);
+            Global.log.info($"disconnected peer {peer}");
 
-            Global.log.writeLine("confirmed disconnected from server", Logger.Verbosity.Error);
+            Global.log.err("confirmed disconnected from server");
             connected = false;
             connectionStatusChanged?.Invoke(connected);
         }
