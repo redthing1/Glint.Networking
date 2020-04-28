@@ -18,32 +18,31 @@ using Random = Nez.Random;
 
 namespace Glint.Networking.Game {
     public class GameSyncer {
-        public LimeClient netNode { get; }
+        public LimeNode netNode { get; }
         public int netUps { get; }
         public int systemUps { get; }
         public int ringBufferSize { get; }
-        public List<GamePeer> peers { get; } = new List<GamePeer>();
+        public List<NetPlayer> peers { get; } = new List<NetPlayer>();
         public uint uid { get; } = (uint) Random.NextInt(int.MaxValue);
         public bool connected;
         public Action<bool> connectionStatusChanged;
         public MessageHandlerContainer handlerContainer { get; } = new MessageHandlerContainer();
-        public Action<GamePeer> gamePeerConnected;
-        public Action<GamePeer> gamePeerDisconnected;
+        public Action<NetPlayer> gamePeerConnected;
+        public Action<NetPlayer> gamePeerDisconnected;
 
         // message queues
         public ConcurrentQueue<ConnectivityUpdate> connectivityUpdates { get; } =
             new ConcurrentQueue<ConnectivityUpdate>();
 
         public ConcurrentRingQueue<BodyUpdate> bodyUpdates { get; }
-        private ITimer nodeUpdateTimer;
+        protected ITimer nodeUpdateTimer;
         public string host { get; }
         public int port { get; }
 #if DEBUG
         public bool debug { get; }
 #endif
 
-        public GameSyncer(string host, int port, int netUps, int systemUps, int ringBufferSize, float timeout,
-            bool debug = false) {
+        public GameSyncer(LimeNode node, int netUps, int systemUps, int ringBufferSize, bool debug = false) {
             this.host = host;
             this.port = port;
             this.netUps = netUps;
@@ -52,14 +51,7 @@ namespace Glint.Networking.Game {
 #if DEBUG
             this.debug = debug;
 #endif
-
-            netNode = new LimeClient(new LimeNode.Configuration {
-                peerConfig = new NetPeerConfiguration("Glint") {
-                    ConnectionTimeout = timeout,
-                    PingInterval = timeout / 2,
-                },
-                messageAssemblies = new[] {Assembly.GetExecutingAssembly(), Assembly.GetCallingAssembly()}
-            });
+            
             netNode.configureGlint();
             netNode.initialize();
 
@@ -81,24 +73,6 @@ namespace Glint.Networking.Game {
                 new BodyUpdateHandler(this));
             handlerContainer.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
                 new BodyUpdateHandler(this));
-        }
-
-        public void connect() {
-            // open connection and go
-            Global.log.info($"connecting to server node ({host}:{port})");
-            netNode.start();
-            netNode.connect(host, port, "hail");
-            nodeUpdateTimer = Core.Schedule(1f / netUps, true, timer => { netNode.update(); });
-        }
-
-        public void disconnect() {
-            Global.log.info($"requesting disconnect from server");
-            var intro = netNode.getMessage<PresenceMessage>();
-            intro.myRemId = netNode.remId;
-            intro.myUid = uid;
-            intro.here = false;
-            netNode.sendToAll(intro);
-            netNode.disconnect();
         }
 
         public void stop() {
@@ -126,7 +100,7 @@ namespace Glint.Networking.Game {
             // check if we don't know the sender of this message, and then update their connectivity if necessary
             if (peers.All(x => x.uid != msg.sourceUid)) {
                 // this is a relayed message, so we don't know the remId. we set an empty for now
-                var peer = new GamePeer(0, msg.sourceUid);
+                var peer = new NetPlayer(0, msg.sourceUid);
                 peers.Add(peer);
                 Global.log.trace($"implicitly introduced to peer {peer}");
                 connectivityUpdates.Enqueue(new ConnectivityUpdate(peer,
@@ -163,7 +137,7 @@ namespace Glint.Networking.Game {
             Global.log.info($"connected new peer {peer}");
             // once peer (server) connected, send intro
             var intro = netNode.getMessage<PresenceMessage>();
-            intro.myRemId = netNode.remId;
+            intro.myNick = netNode.lidNick;
             intro.myUid = uid;
             intro.here = true;
             netNode.sendToAll(intro);

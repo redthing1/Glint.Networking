@@ -11,7 +11,7 @@ namespace Glint.Networking {
     public class GlintNetServerContext {
         public Config config;
         public LimeServer serverNode;
-        public List<GamePeer> clients = new List<GamePeer>();
+        public List<NetPlayer> clients = new List<NetPlayer>();
         public List<Assembly> assemblies = new List<Assembly>();
 
         public class Config {

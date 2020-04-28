@@ -1,9 +1,9 @@
 namespace Glint.Networking.Game.Updates {
     public class ConnectivityUpdate {
-        public GamePeer peer;
+        public NetPlayer peer;
         public ConnectionStatus status;
 
-        public ConnectivityUpdate(GamePeer peer, ConnectionStatus status) {
+        public ConnectivityUpdate(NetPlayer peer, ConnectionStatus status) {
             this.peer = peer;
             this.status = status;
         }

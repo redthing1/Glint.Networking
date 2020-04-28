@@ -21,6 +21,7 @@ namespace Glint.Networking {
 
         public GlintNetServerContext context;
         public MessageHandlerContainer handlerContainer = new MessageHandlerContainer();
+        public LimeServer node;
 
         public GlintNetServer(GlintNetServerContext.Config config) {
             context = new GlintNetServerContext(config);
@@ -42,7 +43,7 @@ namespace Glint.Networking {
         }
 
         public void run(CancellationTokenSource tokenSource = null) {
-            var serverNode = new LimeServer(new LimeNode.Configuration {
+            node = new LimeServer(new LimeNode.Configuration {
                 peerConfig = new NetPeerConfiguration("Glint") {
                     Port = context.config.port,
                     ConnectionTimeout = context.config.timeout,
@@ -51,8 +52,8 @@ namespace Glint.Networking {
                 messageAssemblies = new[] {Assembly.GetExecutingAssembly(), Assembly.GetCallingAssembly()}
                     .Concat(context.assemblies).ToArray()
             });
-            serverNode.configureGlint();
-            serverNode.initialize();
+            node.configureGlint();
+            node.initialize();
 
             Global.log.info("configured networking host");
 
@@ -60,12 +61,12 @@ namespace Glint.Networking {
             Global.log.trace($"timeout: {context.config.timeout:n2}s");
             Global.log.trace($"update: {context.config.updateInterval}ms");
 
-            context.serverNode = serverNode;
-            serverNode.onPeerConnected += onPeerConnected;
-            serverNode.onPeerDisconnected += onPeerDisconnected;
-            serverNode.onMessage += onMessage;
-            serverNode.start();
-            Global.log.info($"created server node on port {serverNode.lidgrenServer.Port}");
+            context.serverNode = node;
+            node.onPeerConnected += onPeerConnected;
+            node.onPeerDisconnected += onPeerDisconnected;
+            node.onMessage += onMessage;
+            node.start();
+            Global.log.info($"created server node on port {node.lidgrenServer.Port}");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var nextHeartbeat = 0L;
@@ -74,13 +75,13 @@ namespace Glint.Networking {
             while (!tokenSource?.IsCancellationRequested ?? true) {
                 if (stopwatch.ElapsedMilliseconds > nextHeartbeat) {
                     // send heartbeat
-                    var beat = serverNode.getMessage<HeartbeatMessage>();
+                    var beat = node.getMessage<HeartbeatMessage>();
                     beat.alive = true;
-                    serverNode.sendToAll(beat);
+                    node.sendToAll(beat);
                     nextHeartbeat = stopwatch.ElapsedMilliseconds + context.config.heartbeatInterval;
                 }
 
-                serverNode.update();
+                node.update();
                 Thread.Sleep(context.config.updateInterval);
             }
 
@@ -109,7 +110,7 @@ namespace Glint.Networking {
         private void onPeerDisconnected(NetConnection peer) {
             Global.log.info($"disconnected peer {peer} (before: {context.clients.Count})");
             // broadcast a goodbye on behalf of that peer
-            var clientPeer = context.clients.SingleOrDefault(x => x.remId == peer.RemoteUniqueIdentifier);
+            var clientPeer = context.clients.SingleOrDefault(x => x.nick == peer.RemoteUniqueIdentifier);
             if (clientPeer == null) {
                 Global.log.err($"failed to send goodbye for nonexistent peer {peer.RemoteUniqueIdentifier}");
                 return;

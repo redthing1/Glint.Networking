@@ -7,7 +7,7 @@ using Lime.Utils;
 namespace Lime {
     public abstract class LimeNode {
         protected NetPeer lidgrenPeer;
-        public long remId => lidgrenPeer.UniqueIdentifier;
+        public long lidNick => lidgrenPeer.UniqueIdentifier;
         public Action<Verbosity, string> onLog = (level, s) => { /* default is to just discard */ };
         public Action<NetConnection> onPeerConnected;
         public Action<NetConnection> onPeerDisconnected;

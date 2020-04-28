@@ -24,14 +24,14 @@ namespace Glint.Networking.Handlers.Client {
             if (msg.here) {
                 var peer = syncer.peers.SingleOrDefault(x => x.uid == msg.myUid);
                 if (peer == null) { // create if not exist
-                    peer = new GamePeer(msg.myRemId, msg.myUid);
+                    peer = new NetPlayer(msg.myNick, msg.myUid);
                     syncer.peers.Add(peer);
                 }
 
                 // update nick (in case we don't have it)
-                if (peer.remId != msg.myRemId) {
-                    peer.remId = msg.myRemId;
-                    Global.log.trace($"updated nickname to {peer.remId} for uid: {peer.uid} from introduction");
+                if (peer.nick != msg.myNick) {
+                    peer.nick = msg.myNick;
+                    Global.log.trace($"updated nickname to {peer.nick} for uid: {peer.uid} from introduction");
                 }
 
                 Global.log.info($"received hello from {peer}");
