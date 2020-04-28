@@ -1,13 +1,13 @@
 namespace Glint.Networking.Game {
     public class NetPlayer {
-        public long nick;
+        public long uid;
 
-        public NetPlayer(long nick) {
-            this.nick = nick;
+        public NetPlayer(long uid) {
+            this.uid = uid;
         }
 
         public override string ToString() {
-            return $"({nameof(nick)}: {nick})";
+            return $"({nameof(uid)}: {uid})";
         }
     }
 }

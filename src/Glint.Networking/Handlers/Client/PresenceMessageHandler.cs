@@ -10,7 +10,7 @@ namespace Glint.Networking.Handlers.Client {
 
         public override bool handle(PresenceMessage msg) {
             // my own presence updates connected state
-            if (msg.myNick == syncer.lidNick) {
+            if (msg.myUid == syncer.uid) {
                 if (!syncer.connected && msg.here) {
                     Global.log.info($"confirmed connection to server ({msg.source}");
                 }
@@ -22,16 +22,16 @@ namespace Glint.Networking.Handlers.Client {
 
             // update peer info
             if (msg.here) {
-                var peer = syncer.peers.SingleOrDefault(x => x.nick == msg.myNick);
+                var peer = syncer.peers.SingleOrDefault(x => x.uid == msg.myUid);
                 if (peer == null) { // create if not exist
-                    peer = new NetPlayer(msg.myNick);
+                    peer = new NetPlayer(msg.myUid);
                     syncer.peers.Add(peer);
                 }
 
                 // update nick (in case we don't have it)
-                if (peer.nick != msg.myNick) {
-                    peer.nick = msg.myNick;
-                    Global.log.trace($"updated nickname to {peer.nick} for {nameof(peer.nick)}: {peer.nick} from introduction");
+                if (peer.uid != msg.myUid) {
+                    peer.uid = msg.myUid;
+                    Global.log.trace($"updated nickname to {peer.uid} for {nameof(peer.uid)}: {peer.uid} from introduction");
                 }
 
                 Global.log.info($"received hello from {peer}");
@@ -39,7 +39,7 @@ namespace Glint.Networking.Handlers.Client {
                     ConnectivityUpdate.ConnectionStatus.Connected));
                 syncer.gamePeerConnected(peer);
             } else {
-                var peer = syncer.peers.Single(x => x.nick == msg.myNick);
+                var peer = syncer.peers.Single(x => x.uid == msg.myUid);
                 syncer.peers.Remove(peer);
                 Global.log.info($"received bye from {peer}");
                 syncer.gamePeerDisconnected(peer);

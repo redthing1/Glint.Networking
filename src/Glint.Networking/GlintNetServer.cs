@@ -111,7 +111,7 @@ namespace Glint.Networking {
         private void onPeerDisconnected(NetConnection peer) {
             Global.log.info($"disconnected peer {peer} (before: {context.clients.Count})");
             // broadcast a goodbye on behalf of that peer
-            var clientPeer = context.clients.SingleOrDefault(x => x.nick == peer.RemoteUniqueIdentifier);
+            var clientPeer = context.clients.SingleOrDefault(x => x.uid == peer.RemoteUniqueIdentifier);
             if (clientPeer == null) {
                 Global.log.err($"failed to send goodbye for nonexistent peer {peer.RemoteUniqueIdentifier}");
                 return;

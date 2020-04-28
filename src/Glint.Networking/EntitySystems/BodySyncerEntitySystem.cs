@@ -46,7 +46,7 @@ namespace Glint.Networking.EntitySystems {
                 if (entity.Name.StartsWith(SYNC_PREFIX)) {
                     // we don't own this one
                     // make sure this peer still exists
-                    if (syncer.peers.All(x => x.nick != body.owner)) {
+                    if (syncer.peers.All(x => x.uid != body.owner)) {
                         // peer no longer exists!
                         entitiesToRemove.Add(entity);
                         Global.log.trace($"removing body for nonexistent peer {body.owner}");
@@ -55,7 +55,7 @@ namespace Glint.Networking.EntitySystems {
                     continue;
                 } else {
                     // assert ownership
-                    body.owner = syncer.lidNick;
+                    body.owner = syncer.uid;
                 }
 
                 if (Time.TotalTime > body.nextUpdate) {
@@ -83,14 +83,14 @@ namespace Glint.Networking.EntitySystems {
 #if DEBUG
                 if (syncer.debug) {
                     // dump update type
-                    var kind = bodyUpdate.sourceUid == syncer.lidNick ? "LOCAL" : "REMOTE";
+                    var kind = bodyUpdate.sourceUid == syncer.uid ? "LOCAL" : "REMOTE";
                 }
 #endif
 
                 // for now, don't apply local body updates
                 // TODO: confirm local bodies with local body updates
                 // this is for resolving desyncs from an authoritative update
-                if (bodyUpdate.sourceUid == syncer.lidNick) {
+                if (bodyUpdate.sourceUid == syncer.uid) {
                     localBodyUpdates++;
                     continue;
                 }

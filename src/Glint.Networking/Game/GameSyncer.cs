@@ -35,7 +35,7 @@ namespace Glint.Networking.Game {
 
         public ConcurrentRingQueue<BodyUpdate> bodyUpdates { get; }
         protected ITimer nodeUpdateTimer;
-        public long lidNick => netNode.lidNick;
+        public long uid => netNode.uid;
         public string host { get; }
         public int port { get; }
 #if DEBUG
@@ -61,7 +61,7 @@ namespace Glint.Networking.Game {
         }
 
         public bool ownsBody(SyncBody body) {
-            return body.owner == netNode.lidNick;
+            return body.owner == netNode.uid;
         }
 
         private void registerHandlers() {
@@ -92,13 +92,13 @@ namespace Glint.Networking.Game {
         }
 
         public void sendGameUpdate(GameUpdateMessage msg) {
-            msg.sourceUid = netNode.lidNick;
+            msg.sourceUid = netNode.uid;
             netNode.sendToAll(msg);
         }
 
         private void preprocessGameUpdate(GameUpdateMessage msg) {
             // check if we don't know the sender of this message, and then update their connectivity if necessary
-            if (peers.All(x => x.nick != msg.sourceUid)) {
+            if (peers.All(x => x.uid != msg.sourceUid)) {
                 // this is a relayed message, so we don't know the remId. we set an empty for now
                 var peer = new NetPlayer(msg.sourceUid);
                 peers.Add(peer);
@@ -137,7 +137,7 @@ namespace Glint.Networking.Game {
             Global.log.info($"connected new peer {peer}");
             // once peer (server) connected, send intro
             var intro = netNode.getMessage<PresenceMessage>();
-            intro.myNick = netNode.lidNick;
+            intro.myUid = netNode.uid;
             intro.here = true;
             netNode.sendToAll(intro);
         }
