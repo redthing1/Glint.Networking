@@ -31,6 +31,7 @@ namespace Glint.Networking {
             // presence
             handlerContainer.register(new PresenceRelayHandler(context));
             // body updates
+            // registerAs allows us to use the same handler for different update types
             handlerContainer.registerAs<BodyUpdateMessage, BodyKinematicUpdateMessage>(
                 new BodyRelayMessageHandler(context));
             handlerContainer.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
@@ -71,7 +72,7 @@ namespace Glint.Networking {
             stopwatch.Start();
             var nextHeartbeat = 0L;
             var lastTime = 0L;
-            // TODO: run a console
+
             while (!tokenSource?.IsCancellationRequested ?? true) {
                 if (stopwatch.ElapsedMilliseconds > nextHeartbeat) {
                     // send heartbeat
