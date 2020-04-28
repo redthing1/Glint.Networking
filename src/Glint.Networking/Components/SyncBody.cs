@@ -9,7 +9,7 @@ namespace Glint.Networking.Components {
     public abstract class SyncBody : KinBody {
         public float nextUpdate = 0;
         public uint bodyId = (uint) Nez.Random.NextInt(int.MaxValue);
-        public uint ownerUid;
+        public long owner;
         public ITween<Vector2>? posTween;
         public ITween<float>? angleTween;
         

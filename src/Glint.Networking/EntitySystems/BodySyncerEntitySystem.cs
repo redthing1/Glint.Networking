@@ -46,16 +46,16 @@ namespace Glint.Networking.EntitySystems {
                 if (entity.Name.StartsWith(SYNC_PREFIX)) {
                     // we don't own this one
                     // make sure this peer still exists
-                    if (syncer.peers.All(x => x.uid != body.ownerUid)) {
+                    if (syncer.peers.All(x => x.nick != body.owner)) {
                         // peer no longer exists!
                         entitiesToRemove.Add(entity);
-                        Global.log.trace($"removing body for nonexistent peer {body.ownerUid}");
+                        Global.log.trace($"removing body for nonexistent peer {body.owner}");
                     }
 
                     continue;
                 } else {
                     // assert ownership
-                    body.ownerUid = syncer.uid;
+                    body.owner = syncer.lidNick;
                 }
 
                 if (Time.TotalTime > body.nextUpdate) {
@@ -83,14 +83,14 @@ namespace Glint.Networking.EntitySystems {
 #if DEBUG
                 if (syncer.debug) {
                     // dump update type
-                    var kind = bodyUpdate.sourceUid == syncer.uid ? "LOCAL" : "REMOTE";
+                    var kind = bodyUpdate.sourceUid == syncer.lidNick ? "LOCAL" : "REMOTE";
                 }
 #endif
 
                 // for now, don't apply local body updates
                 // TODO: confirm local bodies with local body updates
                 // this is for resolving desyncs from an authoritative update
-                if (bodyUpdate.sourceUid == syncer.uid) {
+                if (bodyUpdate.sourceUid == syncer.lidNick) {
                     localBodyUpdates++;
                     continue;
                 }
@@ -114,7 +114,7 @@ namespace Glint.Networking.EntitySystems {
                     bodyUpdate.applyTo(body); // this is a new body, immediately apply our first update
                     body.Entity = syncNt;
                     body.bodyId = bodyUpdate.bodyId;
-                    body.ownerUid = bodyUpdate.sourceUid;
+                    body.owner = bodyUpdate.sourceUid;
                     newEntities.Add(syncNt);
                 } else {
                     // 2. apply the body update

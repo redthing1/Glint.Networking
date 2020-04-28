@@ -10,10 +10,10 @@ namespace Glint.Networking.Handlers.Server {
         protected override bool validate(PresenceMessage msg) {
             if (msg.here) {
                 // ensure that the introduction is unique
-                return context.clients.All(x => x.uid != msg.myUid && x.nick != msg.myNick);
+                return context.clients.All(x => x.nick != msg.myNick && x.nick != msg.myNick);
             } else {
                 // ensure that a client exists
-                return context.clients.Any(x => x.uid == msg.myUid);
+                return context.clients.Any(x => x.nick == msg.myNick);
             }
         }
 
@@ -23,7 +23,7 @@ namespace Glint.Networking.Handlers.Server {
             Global.log.info($"presence update from {msg.myNick}, {presence}");
             if (msg.here) {
                 // save the user
-                var clientPeer = new NetPlayer(msg.myNick, msg.myUid);
+                var clientPeer = new NetPlayer(msg.myNick);
                 context.clients.Add(clientPeer);
                 Global.log.trace($"added client {clientPeer}");
                 return true;

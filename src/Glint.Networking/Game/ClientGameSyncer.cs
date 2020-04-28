@@ -21,7 +21,6 @@ namespace Glint.Networking.Game {
             Global.log.info($"requesting disconnect from server");
             var intro = netNode.getMessage<PresenceMessage>();
             intro.myNick = netNode.lidNick;
-            intro.myUid = uid;
             intro.here = false;
             netNode.sendToAll(intro);
             netNode.disconnect();

@@ -23,7 +23,6 @@ namespace Glint.Networking.Game {
         public int systemUps { get; }
         public int ringBufferSize { get; }
         public List<NetPlayer> peers { get; } = new List<NetPlayer>();
-        public uint uid { get; } = (uint) Random.NextInt(int.MaxValue);
         public bool connected;
         public Action<bool> connectionStatusChanged;
         public MessageHandlerContainer handlerContainer { get; } = new MessageHandlerContainer();
@@ -36,6 +35,7 @@ namespace Glint.Networking.Game {
 
         public ConcurrentRingQueue<BodyUpdate> bodyUpdates { get; }
         protected ITimer nodeUpdateTimer;
+        public long lidNick => netNode.lidNick;
         public string host { get; }
         public int port { get; }
 #if DEBUG
@@ -61,7 +61,7 @@ namespace Glint.Networking.Game {
         }
 
         public bool ownsBody(SyncBody body) {
-            return body.ownerUid == uid;
+            return body.owner == netNode.lidNick;
         }
 
         private void registerHandlers() {
@@ -92,15 +92,15 @@ namespace Glint.Networking.Game {
         }
 
         public void sendGameUpdate(GameUpdateMessage msg) {
-            msg.sourceUid = uid;
+            msg.sourceUid = netNode.lidNick;
             netNode.sendToAll(msg);
         }
 
         private void preprocessGameUpdate(GameUpdateMessage msg) {
             // check if we don't know the sender of this message, and then update their connectivity if necessary
-            if (peers.All(x => x.uid != msg.sourceUid)) {
+            if (peers.All(x => x.nick != msg.sourceUid)) {
                 // this is a relayed message, so we don't know the remId. we set an empty for now
-                var peer = new NetPlayer(0, msg.sourceUid);
+                var peer = new NetPlayer(msg.sourceUid);
                 peers.Add(peer);
                 Global.log.trace($"implicitly introduced to peer {peer}");
                 connectivityUpdates.Enqueue(new ConnectivityUpdate(peer,
@@ -138,7 +138,6 @@ namespace Glint.Networking.Game {
             // once peer (server) connected, send intro
             var intro = netNode.getMessage<PresenceMessage>();
             intro.myNick = netNode.lidNick;
-            intro.myUid = uid;
             intro.here = true;
             netNode.sendToAll(intro);
         }
