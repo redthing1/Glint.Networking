@@ -9,11 +9,11 @@ namespace Lime {
     public class LimeMessageFactory {
         private Dictionary<byte, LimeMessage> messages = new Dictionary<byte, LimeMessage>();
         private Dictionary<Type, LimeMessage> messagesByType = new Dictionary<Type, LimeMessage>();
-        private Action<LogLevel, string> log;
+        private Action<Verbosity, string> log;
 
         internal LimeMessageFactory() { }
 
-        public void init(Assembly[] messageAssemblies, Action<LogLevel, string> onLog) {
+        public void init(Assembly[] messageAssemblies, Action<Verbosity, string> onLog) {
             log = onLog;
             buildInstances(messageAssemblies);
         }
@@ -37,7 +37,7 @@ namespace Lime {
             buildInstances(typeof(LimeMessage).Assembly);
             foreach (Assembly a in messageAssemblies)
                 buildInstances(a);
-            log(LogLevel.Trace, $"created instances for {messages.Count} registered network messages");
+            log(Verbosity.Trace, $"created instances for {messages.Count} registered network messages");
         }
 
         private void buildInstances(Assembly messageAssembly) {
@@ -57,7 +57,7 @@ namespace Lime {
                     msg.id = (byte) messages.Count;
                     messages[msg.id] = msg;
                     messagesByType[msg.GetType()] = msg;
-                    log(LogLevel.Trace, $"registered message type {msg.GetType()} as id {msg.id}");
+                    log(Verbosity.Trace, $"registered message type {msg.GetType()} as id {msg.id}");
                 }
             }
         }

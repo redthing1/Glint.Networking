@@ -1,5 +1,5 @@
 namespace Lime.Utils {
-    public enum LogLevel {
+    public enum Verbosity {
         Trace,
         Warning,
         Error

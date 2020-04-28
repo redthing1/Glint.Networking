@@ -8,13 +8,13 @@ namespace Glint.Networking {
         public static void configureGlint(this LimeNode node) {
             node.onLog += (level, s) => {
                 switch (level) {
-                    case LogLevel.Trace:
+                    case Verbosity.Trace:
                         Global.log.trace(s);
                         break;
-                    case LogLevel.Warning:
+                    case Verbosity.Warning:
                         Global.log.warn(s);
                         break;
-                    case LogLevel.Error:
+                    case Verbosity.Error:
                         Global.log.err(s);
                         break;
                 }

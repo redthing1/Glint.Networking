@@ -8,7 +8,7 @@ namespace Lime {
     public abstract class LimeNode {
         protected NetPeer lidgrenPeer;
         public long remId => lidgrenPeer.UniqueIdentifier;
-        public Action<LogLevel, string> onLog = (level, s) => { /* default is to just discard */ };
+        public Action<Verbosity, string> onLog = (level, s) => { /* default is to just discard */ };
         public Action<NetConnection> onPeerConnected;
         public Action<NetConnection> onPeerDisconnected;
         public Action<LimeMessage> onMessage;
@@ -48,16 +48,16 @@ namespace Lime {
             while ((msg = lidgrenPeer.ReadMessage()) != null) {
                 switch (msg.MessageType) {
                     case NetIncomingMessageType.VerboseDebugMessage:
-                        onLog(LogLevel.Trace, msg.ReadString());
+                        onLog(Verbosity.Trace, msg.ReadString());
                         break;
                     case NetIncomingMessageType.DebugMessage:
-                        onLog(LogLevel.Trace, msg.ReadString());
+                        onLog(Verbosity.Trace, msg.ReadString());
                         break;
                     case NetIncomingMessageType.WarningMessage:
-                        onLog(LogLevel.Warning, msg.ReadString());
+                        onLog(Verbosity.Warning, msg.ReadString());
                         break;
                     case NetIncomingMessageType.ErrorMessage:
-                        onLog(LogLevel.Error, msg.ReadString());
+                        onLog(Verbosity.Error, msg.ReadString());
                         break;
                     case NetIncomingMessageType.StatusChanged:
                         NetConnectionStatus status = (NetConnectionStatus) msg.ReadByte();
@@ -81,7 +81,7 @@ namespace Lime {
                         onMessage(message);
                         break;
                     default:
-                        onLog(LogLevel.Warning, $"unhandled message type {msg.MessageType}");
+                        onLog(Verbosity.Warning, $"unhandled message type {msg.MessageType}");
                         break;
                 }
 
