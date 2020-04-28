@@ -6,6 +6,11 @@ using Nez;
 
 namespace Glint.Networking.EntitySystems {
     public static class SyncBodyMatcherProvider {
+        /// <summary>
+        ///     automatically create matcher for all SyncBody subclasses
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
         public static Matcher createMatcher(Assembly assembly) {
             var syncBodyTypes = new List<Type>();
             foreach (var type in assembly.DefinedTypes) {

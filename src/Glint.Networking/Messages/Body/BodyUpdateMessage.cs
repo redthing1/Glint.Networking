@@ -8,7 +8,7 @@ namespace Glint.Networking.Messages {
 
         public virtual void createFrom(SyncBody body) {
             bodyId = body.bodyId;
-            syncTag = body.syncTag;
+            syncTag = body.bodyType;
         }
     }
 }

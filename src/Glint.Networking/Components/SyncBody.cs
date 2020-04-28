@@ -13,7 +13,7 @@ namespace Glint.Networking.Components {
         public ITween<Vector2>? posTween;
         public ITween<float>? angleTween;
         
-        public abstract uint syncTag { get; }
+        public abstract uint bodyType { get; }
         public abstract InterpolationType interpolationType { get; }
         
         public enum InterpolationType {
