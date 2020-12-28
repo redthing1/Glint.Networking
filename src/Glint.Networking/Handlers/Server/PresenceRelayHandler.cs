@@ -25,6 +25,7 @@ namespace Glint.Networking.Handlers.Server {
                 // save the user
                 var clientPeer = new NetPlayer(msg.myUid);
                 context.clients.Add(clientPeer);
+                context.server.onClientJoin?.Invoke(clientPeer); // call handler
                 Global.log.trace($"added client {clientPeer}");
                 return true;
             }

@@ -1,7 +1,9 @@
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Glint.Networking.Game;
 using Glint.Networking.Handlers;
 using Glint.Networking.Handlers.Server;
 using Glint.Networking.Messages;
@@ -26,9 +28,14 @@ namespace Glint.Networking {
         public MessageHandlerContainer handlers = new MessageHandlerContainer();
 
         public LimeServer node;
+        
+        // handlers to be hooked by a scene
+        public Action<NetPlayer>? onClientJoin;
+        public Action<NetPlayer>? onClientLeave;
 
         public GlintNetServer(GlintNetServerContext.Config config) {
             context = new GlintNetServerContext(config);
+            context.server = this;
         }
 
         private void configureDefaultHandlers() {
@@ -129,6 +136,7 @@ namespace Glint.Networking {
             }
 
             // remove the user
+            context.server.onClientLeave?.Invoke(clientPeer); // call handler
             context.clients.Remove(clientPeer);
             Global.log.trace($"removed client {clientPeer}");
 
