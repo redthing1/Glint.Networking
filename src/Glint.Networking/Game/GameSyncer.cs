@@ -142,9 +142,11 @@ namespace Glint.Networking.Game {
         public void onPeerConnected(NetConnection peer) {
             Global.log.info($"connected new peer {peer}");
             // once peer (server) connected, send intro
+            // introduce myself to everyone else
             var intro = netNode.getMessage<PresenceMessage>();
             intro.myUid = netNode.uid;
             intro.here = true;
+            intro.myNick = StringUtils.randomString(4);
             netNode.sendToAll(intro);
         }
 

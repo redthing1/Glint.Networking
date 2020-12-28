@@ -23,22 +23,30 @@ namespace Glint.Networking.Handlers.Client {
             // update peer info
             if (msg.here) {
                 var peer = syncer.peers.SingleOrDefault(x => x.uid == msg.myUid);
-                if (peer == null) { // create if not exist
-                    peer = new NetPlayer(msg.myUid);
+                if (peer == null) {
+                    // create if not exist
+                    peer = new NetPlayer(msg.myUid, msg.myNick);
                     syncer.peers.Add(peer);
                 }
 
-                // update nick (in case we don't have it)
+                // update uid (in case we don't have it)
                 if (peer.uid != msg.myUid) {
                     peer.uid = msg.myUid;
-                    Global.log.trace($"updated nickname to {peer.uid} for {nameof(peer.uid)}: {peer.uid} from introduction");
+                    Global.log.trace($"updated uid to {peer.uid} for {nameof(peer.uid)}: {peer.uid} from introduction");
+                }
+
+                // update nick (in case we don't have it)
+                if (peer.nick != msg.myNick) {
+                    peer.nick = msg.myNick;
+                    Global.log.trace($"updated nick to {peer.nick} for {peer.uid}");
                 }
 
                 Global.log.info($"received hello from {peer}");
                 syncer.connectivityUpdates.Enqueue(new ConnectivityUpdate(peer,
                     ConnectivityUpdate.ConnectionStatus.Connected));
                 syncer.gamePeerConnected(peer);
-            } else {
+            }
+            else {
                 var peer = syncer.peers.Single(x => x.uid == msg.myUid);
                 syncer.peers.Remove(peer);
                 Global.log.info($"received bye from {peer}");

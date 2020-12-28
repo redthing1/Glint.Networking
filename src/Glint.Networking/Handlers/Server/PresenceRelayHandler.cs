@@ -23,7 +23,7 @@ namespace Glint.Networking.Handlers.Server {
             Global.log.info($"presence update from {msg.myUid}, {presence}");
             if (msg.here) {
                 // save the user
-                var clientPeer = new NetPlayer(msg.myUid);
+                var clientPeer = new NetPlayer(msg.myUid, msg.myNick);
                 context.clients.Add(clientPeer);
                 context.server.onClientJoin?.Invoke(clientPeer); // call handler
                 Global.log.trace($"added client {clientPeer}");

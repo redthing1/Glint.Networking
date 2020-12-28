@@ -2,9 +2,11 @@ namespace Glint.Networking.Game {
     public class NetPlayer {
         public long uid;
         public long lastMessage;
+        public string nick;
 
-        public NetPlayer(long uid) {
+        public NetPlayer(long uid, string nick) {
             this.uid = uid;
+            this.nick = nick;
         }
 
         public override string ToString() {
