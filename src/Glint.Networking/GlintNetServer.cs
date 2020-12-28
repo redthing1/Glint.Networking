@@ -19,6 +19,7 @@ namespace Glint.Networking {
         public const int DEF_PORT = 13887;
         public const int DEF_TIMEOUT = 10;
         public const int DEF_INTERVAL = 100;
+        public const string DEF_APP_ID = "Glint";
 
         public GlintNetServerContext context;
 
@@ -57,18 +58,14 @@ namespace Glint.Networking {
         }
 
         public void run(CancellationTokenSource? tokenSource = null) {
-            var peerConfig = new NetPeerConfiguration("Glint") {
-                Port = context.config.port,
-                ConnectionTimeout = context.config.timeout,
-                PingInterval = context.config.timeout / 2,
-            };
-            #if DEBUG
+            var peerConfig = NetConfigurator.createServerPeerConfig(context.config.port, context.config.timeout);
+#if DEBUG
             if (context.config.simulateLag) {
                 Global.log.warn("lag simulation enabled");
                 peerConfig.SimulatedLoss = 0.1f;
                 peerConfig.SimulatedRandomLatency = 0.5f;
             }
-            #endif
+#endif
             node = new LimeServer(new LimeNode.Configuration {
                 peerConfig = peerConfig,
                 messageAssemblies = new[] {Assembly.GetExecutingAssembly(), Assembly.GetCallingAssembly()}
@@ -129,7 +126,7 @@ namespace Glint.Networking {
             else {
                 Global.log.err($"no handler found for {msgType.Name}");
             }
-            
+
             // update last message time
             var client = context.clients.Single(x => x.uid == msg.source.RemoteUniqueIdentifier);
             client.lastMessage = stopwatch.ElapsedMilliseconds;

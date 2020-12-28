@@ -1,5 +1,6 @@
 using System.Reflection;
 using Glint.Util;
+using Lidgren.Network;
 using Lime;
 using Lime.Utils;
 
@@ -19,6 +20,21 @@ namespace Glint.Networking {
                         Global.log.err(s);
                         break;
                 }
+            };
+        }
+
+        public static NetPeerConfiguration createServerPeerConfig(int port, float timeout) {
+            return new NetPeerConfiguration(GlintNetServer.DEF_APP_ID) {
+                Port = port,
+                ConnectionTimeout = timeout,
+                PingInterval = timeout / 2,
+            };
+        }
+
+        public static NetPeerConfiguration createClientPeerConfig(float timeout) {
+            return new NetPeerConfiguration(GlintNetServer.DEF_APP_ID) {
+                ConnectionTimeout = timeout,
+                PingInterval = timeout / 2,
             };
         }
 
