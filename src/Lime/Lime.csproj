@@ -7,8 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Lidgren.Network.Core2" Version="1.0.0" />
       <PackageReference Include="xnez.msgpack-sharp" Version="1.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\iri.lidgren3\Iri.Lidgren3\Iri.Lidgren3.csproj" />
     </ItemGroup>
 
 </Project>
