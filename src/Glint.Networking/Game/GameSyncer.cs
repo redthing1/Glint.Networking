@@ -25,7 +25,7 @@ namespace Glint.Networking.Game {
         public List<NetPlayer> peers { get; } = new List<NetPlayer>();
         public bool connected;
         public Action<bool> connectionStatusChanged;
-        public MessageHandlerContainer handlerContainer { get; } = new MessageHandlerContainer();
+        public MessageHandlerContainer handlers { get; } = new MessageHandlerContainer();
         public Action<NetPlayer> gamePeerConnected;
         public Action<NetPlayer> gamePeerDisconnected;
 
@@ -68,12 +68,12 @@ namespace Glint.Networking.Game {
 
         private void registerHandlers() {
             // presence
-            handlerContainer.register(new PresenceMessageHandler(this));
-            handlerContainer.register(new HeartbeatHandler(this));
+            handlers.register(new PresenceMessageHandler(this));
+            handlers.register(new HeartbeatHandler(this));
             // body updates
-            handlerContainer.registerAs<BodyUpdateMessage, BodyKinematicUpdateMessage>(
+            handlers.registerAs<BodyUpdateMessage, BodyKinematicUpdateMessage>(
                 new BodyUpdateHandler(this));
-            handlerContainer.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
+            handlers.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
                 new BodyUpdateHandler(this));
         }
 
@@ -130,8 +130,8 @@ namespace Glint.Networking.Game {
 #endif
             }
 
-            if (handlerContainer.canHandle(msgType)) {
-                var handler = handlerContainer.resolve(msgType);
+            if (handlers.canHandle(msgType)) {
+                var handler = handlers.resolve(msgType);
                 var handled = handler.handle(msg);
             }
             else {

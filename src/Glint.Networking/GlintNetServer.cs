@@ -16,9 +16,21 @@ namespace Glint.Networking {
     /// the main game synchronization server
     /// </summary>
     public class GlintNetServer {
+        /// <summary>
+        /// default port
+        /// </summary>
         public const int DEF_PORT = 13887;
+        /// <summary>
+        /// default timeout in seconds
+        /// </summary>
         public const int DEF_TIMEOUT = 10;
+        /// <summary>
+        /// default update interval in ms
+        /// </summary>
         public const int DEF_INTERVAL = 100;
+        /// <summary>
+        /// default app id
+        /// </summary>
         public const string DEF_APP_ID = "Glint";
 
         public GlintNetServerContext context;
