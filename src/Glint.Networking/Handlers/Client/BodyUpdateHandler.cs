@@ -10,6 +10,7 @@ namespace Glint.Networking.Handlers.Client {
         public override bool handle(BodyUpdateMessage msg) {
             // we always clone the message because we are pooling instances
             var update = default(BodyUpdate);
+            // TODO: instance pooling of body updates
             switch (msg) {
                 case BodyKinematicUpdateMessage kinMsg:
                     update = new BodyKinUpdate();

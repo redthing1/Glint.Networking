@@ -162,7 +162,7 @@ namespace Glint.Networking.EntitySystems {
                                         easeType = EaseType.Linear;
                                     }
                                     else if (body.interpolationType == SyncBody.InterpolationType.Cubic) {
-                                        easeType = EaseType.CubicOut;
+                                        easeType = EaseType.CubicInOut;
                                     }
 
                                     body.posTween = body.Tween(nameof(body.pos), realPos, interpolationDelay)
