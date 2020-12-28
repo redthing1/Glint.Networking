@@ -80,22 +80,23 @@ namespace Glint.Networking.EntitySystems {
 
             var newEntities = new List<Entity>(entities.Except(entitiesToRemove));
 
-            // handle queued updates
+            // handle queued updates in message queues
             // Global.log.trace($"== body syncer entity system - update() called, pending: {syncer.bodyUpdates.Count}");
             var remoteBodyUpdates = 0U;
             var localBodyUpdates = 0U;
             while (syncer.bodyUpdates.tryDequeue(out var bodyUpdate)) {
+                bool isLocalBodyUpdate = bodyUpdate.sourceUid == syncer.uid;
 #if DEBUG
                 if (syncer.debug) {
                     // dump update type
-                    var kind = bodyUpdate.sourceUid == syncer.uid ? "LOCAL" : "REMOTE";
+                    var kind = isLocalBodyUpdate ? "LOCAL" : "REMOTE";
                 }
 #endif
 
                 // for now, don't apply local body updates
                 // TODO: confirm local bodies with local body updates
                 // this is for resolving desyncs from an authoritative update
-                if (bodyUpdate.sourceUid == syncer.uid) {
+                if (isLocalBodyUpdate) {
                     localBodyUpdates++;
                     continue;
                 }
@@ -191,6 +192,7 @@ namespace Glint.Networking.EntitySystems {
 
 #if DEBUG
             if (syncer.debug) {
+                // log the count of body updates that happened this frame
                 var totalBodyUpdates = localBodyUpdates + remoteBodyUpdates;
                 if (totalBodyUpdates > 0) {
                     Global.log.trace(
