@@ -41,6 +41,7 @@ namespace Glint.Networking.EntitySystems {
 
             foreach (var entity in entities) {
                 var body = entity.GetComponent<SyncBody>();
+                if (body == null) continue; // skip any entities without body (in case no types are matched)
                 // check if entity information needs to be updated
                 // we only need to broadcast on entities that we own
                 if (entity.Name.StartsWith(SYNC_PREFIX)) {
@@ -53,7 +54,8 @@ namespace Glint.Networking.EntitySystems {
                     }
 
                     continue;
-                } else {
+                }
+                else {
                     // assert ownership
                     body.owner = syncer.uid;
                 }
@@ -116,7 +118,8 @@ namespace Glint.Networking.EntitySystems {
                     body.bodyId = bodyUpdate.bodyId;
                     body.owner = bodyUpdate.sourceUid;
                     newEntities.Add(syncNt);
-                } else {
+                }
+                else {
                     // 2. apply the body update
                     if (timeOffsetMs < 0) {
                         // we're getting updates from the future? log in relative time
@@ -154,7 +157,8 @@ namespace Glint.Networking.EntitySystems {
                                     var easeType = default(EaseType);
                                     if (body.interpolationType == SyncBody.InterpolationType.Linear) {
                                         easeType = EaseType.Linear;
-                                    } else if (body.interpolationType == SyncBody.InterpolationType.Cubic) {
+                                    }
+                                    else if (body.interpolationType == SyncBody.InterpolationType.Cubic) {
                                         easeType = EaseType.CubicOut;
                                     }
 
