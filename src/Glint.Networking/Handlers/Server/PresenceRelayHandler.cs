@@ -9,10 +9,10 @@ namespace Glint.Networking.Handlers.Server {
 
         protected override bool validate(PresenceMessage msg) {
             if (msg.here) {
-                // ensure that the introduction is unique
+                // ensure that the introduction is from a unique user
                 return context.clients.All(x => x.uid != msg.myUid && x.uid != msg.myUid);
             } else {
-                // ensure that a client exists
+                // ensure that the client already exists in our list
                 return context.clients.Any(x => x.uid == msg.myUid);
             }
         }
@@ -35,10 +35,9 @@ namespace Glint.Networking.Handlers.Server {
 
         protected override void postprocess(PresenceMessage msg) {
             base.postprocess(msg);
-
-
+            
             if (msg.here) {
-                // whenever someone's new, we want to re-introduce everyone else to them
+                // since this user just joined, we want to introduce everyone else to them
                 Global.log.trace($"resending {context.clients.Count} introductions");
                 foreach (var client in context.clients) {
                     var intro = context.serverNode.getMessage<PresenceMessage>();

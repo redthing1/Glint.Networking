@@ -116,6 +116,7 @@ namespace Glint.Networking {
 
         private void onPeerConnected(NetConnection peer) {
             Global.log.info($"connected new peer {peer} (before: {context.clients.Count})");
+            // note that the peer won't be added until it sends a PresenceMessage
         }
 
         private void onPeerDisconnected(NetConnection peer) {
