@@ -7,6 +7,7 @@ using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
 using Glint.Networking.Utils;
 using Glint.Util;
+using Microsoft.Xna.Framework;
 using Nez;
 using Nez.Tweens;
 
@@ -16,7 +17,7 @@ namespace Glint.Networking.EntitySystems {
     /// </summary>
     public class BodySyncerEntitySystem : EntitySystem {
         private readonly GameSyncer syncer;
-        public Func<string, uint, Entity> createSyncedEntity;
+        public Func<string, uint, Entity?> createSyncedEntity;
         public const string SYNC_PREFIX = "_sync";
         private Dictionary<SyncBody, BodyKinUpdate?> cachedKinStates = new Dictionary<SyncBody, BodyKinUpdate?>();
 
@@ -136,8 +137,6 @@ namespace Glint.Networking.EntitySystems {
                             $"received an update {timeOffsetMs}ms in the future (current: {NetworkTime.timeSinceStart}), (frame {bodyUpdate.time - NetworkTime.startTime})");
                     }
 
-                    var timeOffsetSec = timeOffsetMs / 1000f;
-
                     switch (bodyUpdate) {
                         case BodyKinUpdate kinUpdate: {
                             // store in cache
@@ -149,42 +148,8 @@ namespace Glint.Networking.EntitySystems {
                                 case SyncBody.InterpolationType.None:
                                     bodyUpdate.applyTo(body); // just apply the update
                                     break;
-                                case SyncBody.InterpolationType.Linear:
-                                case SyncBody.InterpolationType.Cubic: {
-                                    // we set velocity immediately, but we tween the position
-                                    // save the current position
-                                    var realPos = kinUpdate.pos.unpack();
-                                    var realAngle = kinUpdate.angle;
-                                    body.velocity = kinUpdate.vel.unpack();
-                                    // check existing tween, and cancel
-                                    body.cancelTweens();
-
-                                    // guess interpolation delay by frame difference
-                                    var interpolationDelay = timeOffsetSec;
-#if DEBUG
-                                    if (syncer.debug) {
-                                        Global.log.trace($"interpolating with delay {interpolationDelay}");
-                                    }
-#endif
-
-                                    // figure out ease type
-                                    var easeType = default(EaseType);
-                                    if (body.interpolationType == SyncBody.InterpolationType.Linear) {
-                                        easeType = EaseType.Linear;
-                                    }
-                                    else if (body.interpolationType == SyncBody.InterpolationType.Cubic) {
-                                        easeType = EaseType.CubicInOut;
-                                    }
-
-                                    body.posTween = body.Tween(nameof(body.pos), realPos, interpolationDelay)
-                                        .SetEaseType(easeType);
-                                    body.posTween.Start();
-                                    body.angleTween = body.Tween(nameof(body.angle), realAngle, interpolationDelay)
-                                        .SetEaseType(easeType);
-                                    body.angleTween.Start();
-
+                                default:
                                     break;
-                                }
                             }
 
                             break;
@@ -218,6 +183,20 @@ namespace Glint.Networking.EntitySystems {
                 }
             }
 #endif
+            
+            // step all interpolations
+            foreach (var cachedKinState in cachedKinStates) {
+                if (cachedKinState.Value == null) continue;
+                var body = cachedKinState.Key;
+                var bodyUpdate = cachedKinState.Value!;
+                
+                // calculate time discrepancy
+                var timeNow = NetworkTime.time();
+                var timeOffsetMs = timeNow - bodyUpdate.time;
+
+                // just apply directly
+                bodyUpdate.applyTo(body);
+            }
         }
     }
 }
