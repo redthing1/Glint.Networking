@@ -5,7 +5,6 @@ using System.Threading;
 using Glint.Networking.Handlers;
 using Glint.Networking.Handlers.Server;
 using Glint.Networking.Messages;
-using Glint.Util;
 using Lidgren.Network;
 using Lime;
 using Lime.Messages;
@@ -20,11 +19,12 @@ namespace Glint.Networking {
         public const int DEF_INTERVAL = 100;
 
         public GlintNetServerContext context;
-        
+
         /// <summary>
         /// contains the handlers for each message type
         /// </summary>
         public MessageHandlerContainer handlers = new MessageHandlerContainer();
+
         public LimeServer node;
 
         public GlintNetServer(GlintNetServerContext.Config config) {
@@ -47,7 +47,7 @@ namespace Glint.Networking {
             configureDefaultHandlers();
         }
 
-        public void run(CancellationTokenSource tokenSource = null) {
+        public void run(CancellationTokenSource? tokenSource = null) {
             node = new LimeServer(new LimeNode.Configuration {
                 peerConfig = new NetPeerConfiguration("Glint") {
                     Port = context.config.port,
@@ -57,25 +57,30 @@ namespace Glint.Networking {
                 messageAssemblies = new[] {Assembly.GetExecutingAssembly(), Assembly.GetCallingAssembly()}
                     .Concat(context.assemblies).ToArray()
             });
+            // connect node hooks to glint (logs)
             node.configureGlint();
             node.initialize();
 
-            Global.log.info("configured networking host");
+            Global.log.info("initialized networking host");
 
             // log config in trace
             Global.log.trace($"timeout: {context.config.timeout:n2}s");
             Global.log.trace($"update: {context.config.updateInterval}ms");
 
             context.serverNode = node;
+            
+            // wire callbacks
             node.onPeerConnected += onPeerConnected;
             node.onPeerDisconnected += onPeerDisconnected;
             node.onMessage += onMessage;
+            
+            // start server
             node.start();
             Global.log.info($"created server node on port {node.lidgrenServer.Port}");
+            
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var nextHeartbeat = 0L;
-            var lastTime = 0L;
 
             while (!tokenSource?.IsCancellationRequested ?? true) {
                 if (stopwatch.ElapsedMilliseconds > nextHeartbeat) {
@@ -103,7 +108,8 @@ namespace Glint.Networking {
             if (handlers.canHandle(msgType)) {
                 var handler = handlers.resolve(msgType);
                 handler.handle(msg);
-            } else {
+            }
+            else {
                 Global.log.err($"no handler found for {msgType.Name}");
             }
         }

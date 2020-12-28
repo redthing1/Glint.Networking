@@ -6,6 +6,7 @@ using Lime.Utils;
 namespace Glint.Networking {
     public static class NetConfigurator {
         public static void configureGlint(this LimeNode node) {
+            // register lime logging handler
             node.onLog += (level, s) => {
                 switch (level) {
                     case Verbosity.Trace:

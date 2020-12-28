@@ -6,7 +6,7 @@ using Lime;
 
 namespace Glint.Networking {
     /// <summary>
-    /// context for server
+    /// context for server, that is passed to handlers
     /// </summary>
     public class GlintNetServerContext {
         public Config config;
