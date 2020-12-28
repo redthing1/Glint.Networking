@@ -20,7 +20,11 @@ namespace Glint.Networking {
         public const int DEF_INTERVAL = 100;
 
         public GlintNetServerContext context;
-        public MessageHandlerContainer handlerContainer = new MessageHandlerContainer();
+        
+        /// <summary>
+        /// contains the handlers for each message type
+        /// </summary>
+        public MessageHandlerContainer handlers = new MessageHandlerContainer();
         public LimeServer node;
 
         public GlintNetServer(GlintNetServerContext.Config config) {
@@ -29,12 +33,12 @@ namespace Glint.Networking {
 
         private void configureDefaultHandlers() {
             // presence
-            handlerContainer.register(new PresenceRelayHandler(context));
+            handlers.register(new PresenceRelayHandler(context));
             // body updates
             // registerAs allows us to use the same handler for different update types
-            handlerContainer.registerAs<BodyUpdateMessage, BodyKinematicUpdateMessage>(
+            handlers.registerAs<BodyUpdateMessage, BodyKinematicUpdateMessage>(
                 new BodyRelayMessageHandler(context));
-            handlerContainer.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
+            handlers.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
                 new BodyRelayMessageHandler(context));
         }
 
@@ -96,8 +100,8 @@ namespace Glint.Networking {
             }
 
             // dynamically resolve the handlers
-            if (handlerContainer.canHandle(msgType)) {
-                var handler = handlerContainer.resolve(msgType);
+            if (handlers.canHandle(msgType)) {
+                var handler = handlers.resolve(msgType);
                 handler.handle(msg);
             } else {
                 Global.log.err($"no handler found for {msgType.Name}");
