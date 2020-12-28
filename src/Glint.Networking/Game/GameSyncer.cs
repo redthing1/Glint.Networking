@@ -38,15 +38,17 @@ namespace Glint.Networking.Game {
         public long uid => netNode.uid;
         public string host { get; }
         public int port { get; }
+        public string nickname { get; }
 #if DEBUG
         public bool debug { get; }
 #endif
 
-        public GameSyncer(LimeNode node, string host, int port, int netUps, int systemUps, int ringBufferSize,
+        public GameSyncer(LimeNode node, string host, int port, string nickname, int netUps, int systemUps, int ringBufferSize,
             bool debug = false) {
             this.netNode = node;
             this.host = host;
             this.port = port;
+            this.nickname = nickname;
             this.netUps = netUps;
             this.systemUps = systemUps;
             this.ringBufferSize = ringBufferSize;
@@ -146,7 +148,7 @@ namespace Glint.Networking.Game {
             var intro = netNode.getMessage<PresenceMessage>();
             intro.myUid = netNode.uid;
             intro.here = true;
-            intro.myNick = StringUtils.randomString(4);
+            intro.myNick = nickname;
             netNode.sendToAll(intro);
         }
 

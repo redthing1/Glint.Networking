@@ -10,7 +10,7 @@ namespace Glint.Networking.Game {
         }
 
         public override string ToString() {
-            return $"({nameof(uid)}: {uid})";
+            return $"({nameof(uid)}: {uid}, {nameof(lastMessage)}: {lastMessage}, {nameof(nick)}: {nick})";
         }
     }
 }
