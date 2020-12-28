@@ -18,6 +18,7 @@ namespace Glint.Networking.EntitySystems {
         private readonly GameSyncer syncer;
         public Func<string, uint, Entity> createSyncedEntity;
         public const string SYNC_PREFIX = "_sync";
+        private Dictionary<SyncBody, BodyKinUpdate?> cachedKinStates = new Dictionary<SyncBody, BodyKinUpdate?>();
 
         public BodySyncerEntitySystem(GameSyncer syncer, Matcher matcher) :
             base(matcher) {
@@ -54,6 +55,7 @@ namespace Glint.Networking.EntitySystems {
                         // peer no longer exists!
                         entitiesToRemove.Add(entity);
                         Global.log.trace($"removing body for nonexistent peer {body.owner}");
+                        cachedKinStates.Remove(body); // remove from cache
                     }
 
                     continue;
@@ -78,7 +80,7 @@ namespace Glint.Networking.EntitySystems {
                 entity.Destroy();
             }
 
-            var newEntities = new List<Entity>(entities.Except(entitiesToRemove));
+            var livingEntities = new List<Entity>(entities.Except(entitiesToRemove));
 
             // handle queued updates in message queues
             // Global.log.trace($"== body syncer entity system - update() called, pending: {syncer.bodyUpdates.Count}");
@@ -102,7 +104,7 @@ namespace Glint.Networking.EntitySystems {
                 }
 
                 // 1. find corresponding body
-                var body = newEntities.Select(x => x.GetComponent<SyncBody>())
+                var body = livingEntities.Select(x => x.GetComponent<SyncBody>())
                     .SingleOrDefault(x => x.bodyId == bodyUpdate.bodyId);
                 var timeNow = NetworkTime.time();
                 var timeOffsetMs = timeNow - bodyUpdate.time;
@@ -121,7 +123,10 @@ namespace Glint.Networking.EntitySystems {
                     body.Entity = syncNt;
                     body.bodyId = bodyUpdate.bodyId;
                     body.owner = bodyUpdate.sourceUid;
-                    newEntities.Add(syncNt);
+                    livingEntities.Add(syncNt);
+                    
+                    // update cache
+                    cachedKinStates[body] = null;
                 }
                 else {
                     // 2. apply the body update
@@ -135,6 +140,11 @@ namespace Glint.Networking.EntitySystems {
 
                     switch (bodyUpdate) {
                         case BodyKinUpdate kinUpdate: {
+                            // store in cache
+                            GAssert.Ensure(cachedKinStates.ContainsKey(body));
+                            cachedKinStates[body] = kinUpdate;
+                            
+                            // set up things for interpolation
                             switch (body.interpolationType) {
                                 case SyncBody.InterpolationType.None:
                                     bodyUpdate.applyTo(body); // just apply the update
@@ -182,6 +192,10 @@ namespace Glint.Networking.EntitySystems {
                         case BodyLifetimeUpdate lifetimeUpdate: {
                             // apply to body
                             lifetimeUpdate.applyTo(body);
+                            // if gone, propagate
+                            if (!lifetimeUpdate.exists) {
+                                cachedKinStates.Remove(body);
+                            }
                             break;
                         }
                     }
