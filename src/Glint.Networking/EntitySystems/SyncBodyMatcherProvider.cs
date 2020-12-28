@@ -5,6 +5,9 @@ using Glint.Networking.Components;
 using Nez;
 
 namespace Glint.Networking.EntitySystems {
+    /// <summary>
+    /// utility class for creating matchers for SyncBody components
+    /// </summary>
     public static class SyncBodyMatcherProvider {
         /// <summary>
         ///     automatically create matcher for all SyncBody subclasses

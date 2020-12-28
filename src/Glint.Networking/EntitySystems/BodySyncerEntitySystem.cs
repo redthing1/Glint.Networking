@@ -11,6 +11,9 @@ using Nez;
 using Nez.Tweens;
 
 namespace Glint.Networking.EntitySystems {
+    /// <summary>
+    /// automatically synchronizes from GameSyncer message queues to local entities
+    /// </summary>
     public class BodySyncerEntitySystem : EntitySystem {
         private readonly GameSyncer syncer;
         public Func<string, uint, Entity> createSyncedEntity;

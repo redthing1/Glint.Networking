@@ -17,6 +17,9 @@ using Nez;
 using Random = Nez.Random;
 
 namespace Glint.Networking.Game {
+    /// <summary>
+    /// connects to a game server and fill message queues with data
+    /// </summary>
     public class GameSyncer {
         public LimeNode netNode { get; }
         public int netUps { get; }
@@ -32,9 +35,10 @@ namespace Glint.Networking.Game {
         // message queues
         public ConcurrentQueue<ConnectivityUpdate> connectivityUpdates { get; } =
             new ConcurrentQueue<ConnectivityUpdate>();
-
         public ConcurrentRingQueue<BodyUpdate> bodyUpdates { get; }
         protected ITimer nodeUpdateTimer;
+        
+        // - properties
         public long uid => netNode.uid;
         public string host { get; }
         public int port { get; }
