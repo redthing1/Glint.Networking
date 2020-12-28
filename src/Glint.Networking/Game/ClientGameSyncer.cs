@@ -4,8 +4,8 @@ using Nez;
 
 namespace Glint.Networking.Game {
     public class ClientGameSyncer : GameSyncer {
-        public ClientGameSyncer(LimeClient node, int netUps, int systemUps, int ringBufferSize, bool debug = false) :
-            base(node, netUps, systemUps, ringBufferSize, debug) { }
+        public ClientGameSyncer(LimeClient node, string host, int port, int netUps, int systemUps, int ringBufferSize, bool debug = false) :
+            base(node, host, port, netUps, systemUps, ringBufferSize, debug) { }
 
         public new LimeClient netNode => (LimeClient) base.netNode;
 

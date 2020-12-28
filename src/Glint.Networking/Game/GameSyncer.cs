@@ -42,7 +42,8 @@ namespace Glint.Networking.Game {
         public bool debug { get; }
 #endif
 
-        public GameSyncer(LimeNode node, int netUps, int systemUps, int ringBufferSize, bool debug = false) {
+        public GameSyncer(LimeNode node, string host, int port, int netUps, int systemUps, int ringBufferSize, bool debug = false) {
+            netNode = node;
             this.host = host;
             this.port = port;
             this.netUps = netUps;
