@@ -12,10 +12,10 @@ namespace Glint.Networking.Components {
         public long owner;
         public ITween<Vector2>? posTween;
         public ITween<float>? angleTween;
-        
+
         public abstract uint bodyType { get; }
         public abstract InterpolationType interpolationType { get; }
-        
+
         public enum InterpolationType {
             None,
             Linear, // linear smoothing
@@ -26,6 +26,7 @@ namespace Glint.Networking.Components {
             if (posTween?.IsRunning() ?? false) {
                 posTween.Stop();
             }
+
             posTween = null;
 
             if (angleTween?.IsRunning() ?? false) {
@@ -34,16 +35,20 @@ namespace Glint.Networking.Components {
 
             angleTween = null;
         }
-        
+
         public override void OnRemovedFromEntity() {
             base.OnRemovedFromEntity();
             cancelTweens();
-            // send destroy signal
+
             var syncer = Core.Services.GetService<GameSyncer>();
-            var lifetimeMessage = syncer.createGameUpdate<BodyLifetimeUpdateMessage>();
-            lifetimeMessage.createFrom(this);
-            lifetimeMessage.exists = false;
-            syncer.sendGameUpdate(lifetimeMessage);
+            // check if owned by me
+            if (owner == syncer?.uid) {
+                // send destroy signal
+                var lifetimeMessage = syncer.createGameUpdate<BodyLifetimeUpdateMessage>();
+                lifetimeMessage.createFrom(this);
+                lifetimeMessage.exists = false;
+                syncer.sendGameUpdate(lifetimeMessage);
+            }
         }
     }
 }

@@ -42,8 +42,9 @@ namespace Glint.Networking.Game {
         public bool debug { get; }
 #endif
 
-        public GameSyncer(LimeNode node, string host, int port, int netUps, int systemUps, int ringBufferSize, bool debug = false) {
-            netNode = node;
+        public GameSyncer(LimeNode node, string host, int port, int netUps, int systemUps, int ringBufferSize,
+            bool debug = false) {
+            this.netNode = node;
             this.host = host;
             this.port = port;
             this.netUps = netUps;
@@ -52,7 +53,7 @@ namespace Glint.Networking.Game {
 #if DEBUG
             this.debug = debug;
 #endif
-            
+
             netNode.configureGlint();
             netNode.initialize();
 
@@ -101,24 +102,27 @@ namespace Glint.Networking.Game {
             // check if we don't know the sender of this message, and then update their connectivity if necessary
             if (peers.All(x => x.uid != msg.sourceUid)) {
                 // this is a relayed message, so we don't know the remId. we set an empty for now
-                var peer = new NetPlayer(msg.sourceUid);
-                peers.Add(peer);
-                Global.log.trace($"implicitly introduced to peer {peer}");
-                connectivityUpdates.Enqueue(new ConnectivityUpdate(peer,
-                    ConnectivityUpdate.ConnectionStatus.Connected));
+                // var peer = new NetPlayer(msg.sourceUid);
+                // peers.Add(peer);
+                // Global.log.trace($"implicitly introduced to peer {peer} via {msg.GetType().Name}");
+                // connectivityUpdates.Enqueue(new ConnectivityUpdate(peer,
+                //     ConnectivityUpdate.ConnectionStatus.Connected));
             }
         }
 
         public void onMessage(LimeMessage msg) {
             var msgType = msg.GetType();
-            if (msg is GameUpdateMessage gameUpdateMessage) { // preprocess all game updates
+            if (msg is GameUpdateMessage gameUpdateMessage) {
+                // preprocess all game updates
                 preprocessGameUpdate(gameUpdateMessage);
 #if DEBUG
                 if (debug) {
                     Global.log.trace($"received game update {gameUpdateMessage} from {msg.source}");
                 }
 #endif
-            } else { // log misc message
+            }
+            else {
+                // log misc message
 #if DEBUG
                 if (debug) {
                     Global.log.trace($"received message {msgType.Name} from {msg.source}");
@@ -129,7 +133,8 @@ namespace Glint.Networking.Game {
             if (handlerContainer.canHandle(msgType)) {
                 var handler = handlerContainer.resolve(msgType);
                 var handled = handler.handle(msg);
-            } else {
+            }
+            else {
                 Global.log.err($"no handler found for {msgType.Name}");
             }
         }

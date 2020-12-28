@@ -23,11 +23,11 @@ namespace Glint.Networking.EntitySystems {
             syncer.gamePeerDisconnected += gamePeerDisconnected;
         }
 
-        private void gamePeerDisconnected(NetPlayer obj) {
+        private void gamePeerDisconnected(NetPlayer peer) {
             // throw new NotImplementedException();
         }
 
-        private void gamePeerConnected(NetPlayer obj) {
+        private void gamePeerConnected(NetPlayer peer) {
             // throw new NotImplementedException();
         }
 
