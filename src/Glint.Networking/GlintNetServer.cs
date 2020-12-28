@@ -57,12 +57,20 @@ namespace Glint.Networking {
         }
 
         public void run(CancellationTokenSource? tokenSource = null) {
+            var peerConfig = new NetPeerConfiguration("Glint") {
+                Port = context.config.port,
+                ConnectionTimeout = context.config.timeout,
+                PingInterval = context.config.timeout / 2,
+            };
+            #if DEBUG
+            if (context.config.simulateLag) {
+                Global.log.warn("lag simulation enabled");
+                peerConfig.SimulatedLoss = 0.1f;
+                peerConfig.SimulatedRandomLatency = 0.5f;
+            }
+            #endif
             node = new LimeServer(new LimeNode.Configuration {
-                peerConfig = new NetPeerConfiguration("Glint") {
-                    Port = context.config.port,
-                    ConnectionTimeout = context.config.timeout,
-                    PingInterval = context.config.timeout / 2,
-                },
+                peerConfig = peerConfig,
                 messageAssemblies = new[] {Assembly.GetExecutingAssembly(), Assembly.GetCallingAssembly()}
                     .Concat(context.assemblies).ToArray()
             });

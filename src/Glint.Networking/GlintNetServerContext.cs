@@ -22,6 +22,9 @@ namespace Glint.Networking {
             public Logger.Verbosity verbosity;
             public bool logMessages;
             public float timeout;
+#if DEBUG
+            public bool simulateLag = false;
+#endif
         }
 
         public GlintNetServerContext(Config config) {
