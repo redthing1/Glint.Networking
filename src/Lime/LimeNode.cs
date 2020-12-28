@@ -17,6 +17,9 @@ namespace Lime {
 
         public class Configuration {
             public NetPeerConfiguration peerConfig;
+            /// <summary>
+            /// the assemblies from which to load message types. this must be identical (including order) on client and server!
+            /// </summary>
             public Assembly[] messageAssemblies;
         }
 

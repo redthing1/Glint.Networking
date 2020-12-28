@@ -1,6 +1,7 @@
 namespace Glint.Networking.Game {
     public class NetPlayer {
         public long uid;
+        public long lastMessage;
 
         public NetPlayer(long uid) {
             this.uid = uid;

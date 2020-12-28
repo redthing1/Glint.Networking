@@ -28,7 +28,9 @@ namespace Glint.Networking {
         public MessageHandlerContainer handlers = new MessageHandlerContainer();
 
         public LimeServer node;
-        
+
+        private Stopwatch stopwatch;
+
         // handlers to be hooked by a scene
         public Action<NetPlayer>? onClientJoin;
         public Action<NetPlayer>? onClientLeave;
@@ -75,17 +77,17 @@ namespace Glint.Networking {
             Global.log.trace($"update: {context.config.updateInterval}ms");
 
             context.serverNode = node;
-            
+
             // wire callbacks
             node.onPeerConnected += onPeerConnected;
             node.onPeerDisconnected += onPeerDisconnected;
             node.onMessage += onMessage;
-            
+
             // start server
             node.start();
             Global.log.info($"created server node on port {node.lidgrenServer.Port}");
-            
-            var stopwatch = new Stopwatch();
+
+            stopwatch = new Stopwatch();
             stopwatch.Start();
             var nextHeartbeat = 0L;
 
@@ -119,6 +121,10 @@ namespace Glint.Networking {
             else {
                 Global.log.err($"no handler found for {msgType.Name}");
             }
+            
+            // update last message time
+            var client = context.clients.Single(x => x.uid == msg.source.RemoteUniqueIdentifier);
+            client.lastMessage = stopwatch.ElapsedMilliseconds;
         }
 
         private void onPeerConnected(NetConnection peer) {
