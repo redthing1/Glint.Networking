@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Lidgren.Network;
 using Lime.Messages;
@@ -38,7 +39,9 @@ namespace Lime {
 
         public virtual void stop() {
             // disconnect all clients
-            foreach (var client in lidgrenPeer.Connections) {
+            var connections = new List<NetConnection>();
+            lidgrenPeer.GetConnections(connections);
+            foreach (var client in connections) {
                 client.Disconnect("stop");
             }
         }
@@ -47,8 +50,7 @@ namespace Lime {
         /// pump the message queue
         /// </summary>
         public void update() {
-            var msg = default(NetIncomingMessage);
-            while ((msg = lidgrenPeer.ReadMessage()) != null) {
+            while (lidgrenPeer.TryReadMessage(out var msg)) {
                 switch (msg.MessageType) {
                     case NetIncomingMessageType.VerboseDebugMessage:
                         onLog(Verbosity.Trace, msg.ReadString());
@@ -78,7 +80,7 @@ namespace Lime {
                         break;
                     case NetIncomingMessageType.Data:
                         // data packets are always serialized messages
-                        var rawPacketData = msg.ReadBytes(msg.LengthBytes);
+                        var rawPacketData = msg.Read(msg.ByteLength);
                         var message = msgFactory.read(rawPacketData);
                         message.source = msg.SenderConnection;
                         onMessage(message);
@@ -103,7 +105,9 @@ namespace Lime {
         }
 
         public void sendToAll(LimeMessage message) {
-            foreach (var conn in lidgrenPeer.Connections) {
+            var connections = new List<NetConnection>();
+            lidgrenPeer.GetConnections(connections);
+            foreach (var conn in connections) {
                 sendTo(conn, message);
             }
         }

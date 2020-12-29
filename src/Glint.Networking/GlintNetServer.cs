@@ -78,8 +78,8 @@ namespace Glint.Networking {
 #if DEBUG
             if (context.config.simulateLag) {
                 Global.log.warn("lag simulation enabled");
-                peerConfig.SimulatedLoss = 0.1f;
-                peerConfig.SimulatedRandomLatency = 0.5f;
+                peerConfig.SimulatedLoss = 0.01f;
+                peerConfig.SimulatedRandomLatency = TimeSpan.FromSeconds(0.5);
             }
 #endif
             node = new LimeServer(new LimeNode.Configuration {
