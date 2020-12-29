@@ -6,6 +6,7 @@ using Glint.Networking.Game;
 using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
 using Glint.Networking.Utils;
+using Glint.Networking.Utils.Collections;
 using Glint.Util;
 using Microsoft.Xna.Framework;
 using Nez;
@@ -19,7 +20,8 @@ namespace Glint.Networking.EntitySystems {
         private readonly GameSyncer syncer;
         public Func<string, uint, Entity?> createSyncedEntity;
         public const string SYNC_PREFIX = "_sync";
-        private Dictionary<SyncBody, BodyKinUpdate?> cachedKinStates = new Dictionary<SyncBody, BodyKinUpdate?>();
+
+        private Dictionary<SyncBody, KinStateCache> cachedKinStates = new Dictionary<SyncBody, KinStateCache>();
 
         public BodySyncerEntitySystem(GameSyncer syncer, Matcher matcher) :
             base(matcher) {
@@ -125,9 +127,9 @@ namespace Glint.Networking.EntitySystems {
                     body.bodyId = bodyUpdate.bodyId;
                     body.owner = bodyUpdate.sourceUid;
                     livingEntities.Add(syncNt);
-                    
+
                     // update cache
-                    cachedKinStates[body] = null;
+                    cachedKinStates[body] = new KinStateCache();
                 }
                 else {
                     // 2. apply the body update
@@ -141,8 +143,8 @@ namespace Glint.Networking.EntitySystems {
                         case BodyKinUpdate kinUpdate: {
                             // store in cache
                             GAssert.Ensure(cachedKinStates.ContainsKey(body));
-                            cachedKinStates[body] = kinUpdate;
-                            
+                            cachedKinStates[body].stateBuf.enqueue(new KinStateCache.StateFrame(kinUpdate, timeNow));
+
                             // set up things for interpolation
                             switch (body.interpolationType) {
                                 case SyncBody.InterpolationType.None:
@@ -161,6 +163,7 @@ namespace Glint.Networking.EntitySystems {
                             if (!lifetimeUpdate.exists) {
                                 cachedKinStates.Remove(body);
                             }
+
                             break;
                         }
                     }
@@ -183,19 +186,45 @@ namespace Glint.Networking.EntitySystems {
                 }
             }
 #endif
-            
+
             // step all interpolations
             foreach (var cachedKinState in cachedKinStates) {
-                if (cachedKinState.Value == null) continue;
                 var body = cachedKinState.Key;
-                var bodyUpdate = cachedKinState.Value!;
-                
+                var cache = cachedKinState.Value;
+                if (cache.stateBuf.Count < 2) continue;
+                var update0 = cache.stateBuf.peekAt(0); // previous
+                var update1 = cache.stateBuf.peekAt(1); // most recent
+
                 // calculate time discrepancy
                 var timeNow = NetworkTime.time();
-                var timeOffsetMs = timeNow - bodyUpdate.time;
+                // time between stored frames
+                var timeDiff = (update1.data.time - update0.data.time) / 1000f;
+                // time since we received the most recent frame
+                var timeSince = (timeNow - update1.receivedAt) / 1000f;
 
-                // just apply directly
-                bodyUpdate.applyTo(body);
+                // if our interpolation window exceeds the time window we received, skip
+                if (timeSince > timeDiff) {
+                    continue;
+                }
+
+                var interpT = (timeSince / timeDiff); // progress in interpolation
+
+                // // just apply directly
+                // update1.applyTo(body);
+
+                switch (body.interpolationType) {
+                    case SyncBody.InterpolationType.Linear:
+                        body.pos = InterpolationUtil.lerp(update0.data.pos.unpack(), update1.data.pos.unpack(),
+                            interpT);
+                        body.angle = InterpolationUtil.lerp(update0.data.angle, update1.data.angle, interpT);
+                        break;
+                    case SyncBody.InterpolationType.Hermite:
+                        body.pos = InterpolationUtil.hermite(update0.data.pos.unpack(), update1.data.pos.unpack(),
+                            update0.data.vel.unpack() * Time.DeltaTime, update1.data.vel.unpack() * Time.DeltaTime,
+                            interpT);
+                        body.angle = InterpolationUtil.lerp(update0.data.angle, update1.data.angle, interpT);
+                        break;
+                }
             }
         }
     }

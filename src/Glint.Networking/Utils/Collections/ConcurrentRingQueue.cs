@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Glint.Networking.Utils.Collections {
     /// <summary>
@@ -20,12 +21,17 @@ namespace Glint.Networking.Utils.Collections {
             while (full) {
                 queue.TryDequeue(out _);
             }
+
             // now that we're below capacity again, we add the item
             queue.Enqueue(item);
         }
 
         public bool tryDequeue(out T item) {
             return queue.TryDequeue(out item);
+        }
+
+        public T peekAt(int position) {
+            return queue.ElementAt(position);
         }
 
         public IEnumerator<T> GetEnumerator() => queue.GetEnumerator();

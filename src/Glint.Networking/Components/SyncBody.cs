@@ -18,8 +18,8 @@ namespace Glint.Networking.Components {
 
         public enum InterpolationType {
             None,
-            Linear, // linear smoothing
-            Cubic, // cubic smoothing
+            Linear, // linear interpolation
+            Hermite, // hermite splines
         }
 
         public void cancelTweens() {
