@@ -23,16 +23,16 @@ namespace Glint.Networking {
             };
         }
 
-        public static NetPeerConfiguration createServerPeerConfig(int port, float timeout) {
-            return new NetPeerConfiguration(GlintNetServer.DEF_APP_ID) {
+        public static NetPeerConfiguration createServerPeerConfig(string protocol, int port, float timeout) {
+            return new NetPeerConfiguration(protocol) {
                 Port = port,
                 ConnectionTimeout = timeout,
                 PingInterval = timeout / 2,
             };
         }
 
-        public static NetPeerConfiguration createClientPeerConfig(float timeout) {
-            return new NetPeerConfiguration(GlintNetServer.DEF_APP_ID) {
+        public static NetPeerConfiguration createClientPeerConfig(string protocol, float timeout) {
+            return new NetPeerConfiguration(protocol) {
                 ConnectionTimeout = timeout,
                 PingInterval = timeout / 2,
             };

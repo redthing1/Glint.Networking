@@ -70,7 +70,7 @@ namespace Glint.Networking {
         }
 
         public void run(CancellationTokenSource? tokenSource = null) {
-            var peerConfig = NetConfigurator.createServerPeerConfig(context.config.port, context.config.timeout);
+            var peerConfig = NetConfigurator.createServerPeerConfig("XNezNet-Test", context.config.port, context.config.timeout);
 #if DEBUG
             if (context.config.simulateLag) {
                 Global.log.warn("lag simulation enabled");
