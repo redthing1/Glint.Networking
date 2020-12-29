@@ -20,14 +20,17 @@ namespace Glint.Networking {
         /// default port
         /// </summary>
         public const int DEF_PORT = 13887;
+
         /// <summary>
         /// default timeout in seconds
         /// </summary>
         public const int DEF_TIMEOUT = 10;
+
         /// <summary>
-        /// default update interval in ms
+        /// default update rate (per second)
         /// </summary>
-        public const int DEF_INTERVAL = 100;
+        public const int DEF_UPS = 10;
+
         /// <summary>
         /// default app id
         /// </summary>
@@ -70,7 +73,8 @@ namespace Glint.Networking {
         }
 
         public void run(CancellationTokenSource? tokenSource = null) {
-            var peerConfig = NetConfigurator.createServerPeerConfig("XNezNet-Test", context.config.port, context.config.timeout);
+            var peerConfig =
+                NetConfigurator.createServerPeerConfig("XNezNet-Test", context.config.port, context.config.timeout);
 #if DEBUG
             if (context.config.simulateLag) {
                 Global.log.warn("lag simulation enabled");
@@ -91,7 +95,7 @@ namespace Glint.Networking {
 
             // log config in trace
             Global.log.trace($"timeout: {context.config.timeout:n2}s");
-            Global.log.trace($"update: {context.config.updateInterval}ms");
+            Global.log.trace($"update: {1000 / context.config.ups}ms");
 
             context.serverNode = node;
 
@@ -118,7 +122,7 @@ namespace Glint.Networking {
                 }
 
                 node.update();
-                Thread.Sleep(context.config.updateInterval);
+                Thread.Sleep(1000 / context.config.ups);
             }
 
             stopwatch.Stop();

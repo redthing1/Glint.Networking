@@ -17,7 +17,7 @@ namespace Glint.Networking {
 
         public class Config {
             public int port;
-            public int updateInterval;
+            public int ups;
             public int heartbeatInterval = 2000;
             public Logger.Verbosity verbosity;
             public bool logMessages;
