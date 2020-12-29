@@ -16,6 +16,7 @@ namespace Glint.Networking {
         public List<Assembly> assemblies = new List<Assembly>();
 
         public class Config {
+            public string protocol;
             public int port;
             public int ups;
             public int heartbeatInterval = 2000;
