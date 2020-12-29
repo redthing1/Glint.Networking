@@ -222,7 +222,9 @@ namespace Glint.Networking.EntitySystems {
                         body.pos = InterpolationUtil.hermite(update0.data.pos.unpack(), update1.data.pos.unpack(),
                             update0.data.vel.unpack() * Time.DeltaTime, update1.data.vel.unpack() * Time.DeltaTime,
                             interpT);
-                        body.angle = InterpolationUtil.lerp(update0.data.angle, update1.data.angle, interpT);
+                        body.angle = InterpolationUtil.hermite(update0.data.angle, update1.data.angle,
+                            update0.data.angularVelocity * Time.DeltaTime,
+                            update1.data.angularVelocity * Time.DeltaTime, interpT);
                         break;
                 }
             }
