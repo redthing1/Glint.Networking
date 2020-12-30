@@ -112,7 +112,7 @@ namespace Glint.Networking.EntitySystems {
             // Global.log.trace($"== body syncer entity system - update() called, pending: {syncer.bodyUpdates.Count}");
             var remoteBodyUpdates = 0U;
             var localBodyUpdates = 0U;
-            while (syncer.bodyUpdates.tryDequeue(out var bodyUpdate)) {
+            while (syncer.incomingBodyUpdates.tryDequeue(out var bodyUpdate)) {
                 bool isLocalBodyUpdate = bodyUpdate.sourceUid == syncer.uid;
                 // update counters
                 if (isLocalBodyUpdate)
@@ -210,9 +210,9 @@ namespace Glint.Networking.EntitySystems {
                 if (totalBodyUpdates > 0) {
                     Global.log.trace(
                         $"processed ({localBodyUpdates} local) and ({remoteBodyUpdates} remote) body updates this frame");
-                    if (totalBodyUpdates >= syncer.bodyUpdates.capacity) {
+                    if (totalBodyUpdates >= syncer.incomingBodyUpdates.capacity) {
                         Global.log.trace(
-                            $"body update ring buffer is full ({syncer.bodyUpdates.capacity}), some updates may have been dropped");
+                            $"body update ring buffer is full ({syncer.incomingBodyUpdates.capacity}), some updates may have been dropped");
                     }
                 }
             }

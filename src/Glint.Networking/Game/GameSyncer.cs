@@ -34,9 +34,17 @@ namespace Glint.Networking.Game {
         public Action<NetPlayer> gamePeerDisconnected;
 
         // message queues
+        /// <summary>
+        /// incoming connectivity updates
+        /// </summary>
         public ConcurrentQueue<ConnectivityUpdate> connectivityUpdates { get; } =
             new ConcurrentQueue<ConnectivityUpdate>();
-        public ConcurrentRingQueue<BodyUpdate> bodyUpdates { get; }
+        /// <summary>
+        /// incoming body updates
+        /// </summary>
+        public ConcurrentRingQueue<BodyUpdate> incomingBodyUpdates { get; }
+        public ConcurrentQueue<BodyUpdate> outgoingBodyUpdates { get; }
+        
         protected ITimer nodeUpdateTimer;
         
         // - properties
@@ -64,7 +72,9 @@ namespace Glint.Networking.Game {
             netNode.configureGlint();
             netNode.initialize();
 
-            bodyUpdates = new ConcurrentRingQueue<BodyUpdate>(this.ringBufferSize);
+            incomingBodyUpdates = new ConcurrentRingQueue<BodyUpdate>(this.ringBufferSize);
+            outgoingBodyUpdates = new ConcurrentQueue<BodyUpdate>();
+            
             wireEvents();
             registerHandlers();
         }
