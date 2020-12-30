@@ -2,11 +2,9 @@ using Microsoft.Xna.Framework;
 using MsgPack.Serialization;
 
 namespace Glint.Networking.Messages.Types {
-    public class PackedVec2 {
+    public struct PackedVec2 {
         [MessagePackMember(0)] public float x { get; set; }
         [MessagePackMember(1)] public float y { get; set; }
-
-        public PackedVec2() { }
 
         public PackedVec2(Vector2 v) : this(v.X, v.Y) { }
 
