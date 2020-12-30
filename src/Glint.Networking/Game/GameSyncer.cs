@@ -77,10 +77,8 @@ namespace Glint.Networking.Game {
             handlers.register(new PresenceMessageHandler(this));
             handlers.register(new HeartbeatHandler(this));
             // body updates
-            handlers.registerAs<BodyUpdateMessage, BodyKinematicUpdateMessage>(
-                new BodyUpdateHandler(this));
-            handlers.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
-                new BodyUpdateHandler(this));
+            handlers.register(new BodyKinematicUpdateHandler(this));
+            handlers.register(new BodyLifetimeUpdateHandler(this));
         }
 
         public void stop() {

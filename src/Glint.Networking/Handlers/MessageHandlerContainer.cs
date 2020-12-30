@@ -23,7 +23,7 @@ namespace Glint.Networking.Handlers {
         /// <param name="handler"></param>
         /// <typeparam name="TRegistration"></typeparam>
         /// <typeparam name="TMessage"></typeparam>
-        public void registerAs<TRegistration, TMessage>(MessageHandler<TRegistration> handler)
+        private void registerAs<TRegistration, TMessage>(MessageHandler<TRegistration> handler)
             where TMessage : LimeMessage where TRegistration : LimeMessage {
             handlers[typeof(TMessage)] = handler;
         }
@@ -31,7 +31,7 @@ namespace Glint.Networking.Handlers {
         public void unregister<TMessage>(MessageHandler<TMessage> handler) where TMessage : LimeMessage =>
             unregisterAs<TMessage, TMessage>(handler);
 
-        public void unregisterAs<TRegistration, TMessage>(MessageHandler<TRegistration> handler)
+        private void unregisterAs<TRegistration, TMessage>(MessageHandler<TRegistration> handler)
             where TMessage : LimeMessage where TRegistration : LimeMessage {
             handlers.Remove(typeof(TMessage));
         }

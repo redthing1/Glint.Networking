@@ -60,11 +60,8 @@ namespace Glint.Networking {
             // presence
             handlers.register(new PresenceRelayHandler(context));
             // body updates
-            // registerAs allows us to use the same handler for different update types
-            handlers.registerAs<BodyUpdateMessage, BodyKinematicUpdateMessage>(
-                new BodyRelayMessageHandler(context));
-            handlers.registerAs<BodyUpdateMessage, BodyLifetimeUpdateMessage>(
-                new BodyRelayMessageHandler(context));
+            handlers.register(new BodyKinematicUpdateRelay(context));
+            handlers.register(new BodyLifetimeUpdateRelay(context));
         }
 
         public void initialize() {

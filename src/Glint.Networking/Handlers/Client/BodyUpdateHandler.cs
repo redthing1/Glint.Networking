@@ -4,7 +4,7 @@ using Glint.Networking.Messages;
 using Glint.Util;
 
 namespace Glint.Networking.Handlers.Client {
-    public class BodyUpdateHandler : ClientMessageHandler<BodyUpdateMessage> {
+    public abstract class BodyUpdateHandler : ClientMessageHandler<BodyUpdateMessage> {
         public BodyUpdateHandler(GameSyncer syncer) : base(syncer) { }
 
         public override bool handle(BodyUpdateMessage msg) {
@@ -29,5 +29,13 @@ namespace Glint.Networking.Handlers.Client {
             syncer.bodyUpdates.enqueue(update);
             return true;
         }
+    }
+
+    public class BodyKinematicUpdateHandler : BodyUpdateHandler {
+        public BodyKinematicUpdateHandler(GameSyncer syncer) : base(syncer) { }
+    }
+
+    public class BodyLifetimeUpdateHandler : BodyUpdateHandler {
+        public BodyLifetimeUpdateHandler(GameSyncer syncer) : base(syncer) { }
     }
 }
