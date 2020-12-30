@@ -161,12 +161,6 @@ namespace Glint.Networking {
             }
             
             removePlayer(player);
-
-            Global.log.trace($"sending goodbye on behalf of {peer.RemoteUniqueIdentifier}");
-            var bye = context.serverNode!.getMessage<PresenceMessage>();
-            bye.createFrom(player);
-            bye.here = false;
-            context.serverNode!.sendToAll(bye);
         }
 
         internal void addPlayer(NetPlayer player) {
@@ -174,6 +168,7 @@ namespace Glint.Networking {
             context.scene.bodies[player] = new List<NetScene.Body>();
             onClientJoin?.Invoke(player); // call handler
             Global.log.trace($"added client {player}");
+            onJoinHook(player);
         }
 
         internal void removePlayer(NetPlayer player) {
@@ -181,6 +176,15 @@ namespace Glint.Networking {
             context.scene.bodies.Remove(player);
             context.clients.Remove(player);
             Global.log.trace($"removed client {player}");
+            onLeaveHook(player);
+        }
+
+        private void onJoinHook(NetPlayer netPlayer) {
+            // send catch up
+        }
+
+        private void onLeaveHook(NetPlayer netPlayer) {
+            
         }
     }
 }
