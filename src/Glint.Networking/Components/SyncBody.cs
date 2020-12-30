@@ -36,6 +36,23 @@ namespace Glint.Networking.Components {
             angleTween = null;
         }
 
+        public override void OnAddedToEntity() {
+            base.OnAddedToEntity();
+            
+            var syncer = Core.Services.GetService<ClientGameSyncer>();
+            // check if owned by me
+            if (owner == syncer?.uid) {
+                // send create signal
+                var lifetimeMessage = syncer.createGameUpdate<BodyLifetimeUpdateMessage>();
+                lifetimeMessage.createFrom(this);
+                lifetimeMessage.exists = true;
+                syncer.queueGameUpdate(lifetimeMessage);
+                if (syncer.debug) {
+                    Global.log.trace($"sent local SyncBody creation {lifetimeMessage}");
+                }
+            }
+        }
+
         public override void OnRemovedFromEntity() {
             base.OnRemovedFromEntity();
             cancelTweens();
