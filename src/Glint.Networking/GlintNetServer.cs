@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -153,23 +154,33 @@ namespace Glint.Networking {
         private void onPeerDisconnected(NetConnection peer) {
             Global.log.info($"disconnected peer {peer} (before: {context.clients.Count})");
             // broadcast a goodbye on behalf of that peer
-            var clientPeer = context.clients.SingleOrDefault(x => x.uid == peer.RemoteUniqueIdentifier);
-            if (clientPeer == null) {
-                Global.log.err($"failed to send goodbye for nonexistent peer {peer.RemoteUniqueIdentifier}");
+            var player = context.clients.SingleOrDefault(x => x.uid == peer.RemoteUniqueIdentifier);
+            if (player == null) {
+                Global.log.err($"failed to send goodbyes on behalf of nonexistent peer {peer.RemoteUniqueIdentifier}");
                 return;
             }
-
-            // remove the user
-            context.server!.onClientLeave?.Invoke(clientPeer); // call handler
-            context.clients.Remove(clientPeer);
-            context.scene.bodies.Remove(clientPeer);
-            Global.log.trace($"removed client {clientPeer}");
+            
+            removePlayer(player);
 
             Global.log.trace($"sending goodbye on behalf of {peer.RemoteUniqueIdentifier}");
             var bye = context.serverNode!.getMessage<PresenceMessage>();
-            bye.createFrom(clientPeer);
+            bye.createFrom(player);
             bye.here = false;
             context.serverNode!.sendToAll(bye);
+        }
+
+        internal void addPlayer(NetPlayer player) {
+            context.clients.Add(player);
+            context.scene.bodies[player] = new List<NetScene.Body>();
+            onClientJoin?.Invoke(player); // call handler
+            Global.log.trace($"added client {player}");
+        }
+
+        internal void removePlayer(NetPlayer player) {
+            context.server!.onClientLeave?.Invoke(player);
+            context.scene.bodies.Remove(player);
+            context.clients.Remove(player);
+            Global.log.trace($"removed client {player}");
         }
     }
 }

@@ -23,11 +23,8 @@ namespace Glint.Networking.Pipeline.Relays {
             Global.log.info($"presence update from {msg.myUid}, {presence}");
             if (msg.here) {
                 // save the user
-                var clientPeer = new NetPlayer(msg.myUid, msg.myNick);
-                context.clients.Add(clientPeer);
-                context.scene.bodies[clientPeer] = new List<NetScene.Body>();
-                context.server.onClientJoin?.Invoke(clientPeer); // call handler
-                Global.log.trace($"added client {clientPeer}");
+                var player = new NetPlayer(msg.myUid, msg.myNick);
+                context.server!.addPlayer(player);
                 return true;
             }
 
