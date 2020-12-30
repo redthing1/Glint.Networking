@@ -107,6 +107,23 @@ namespace Lime {
             return msgFactory.get<T>();
         }
 
+        private NetConnection? getPeerByUid(long peerUid) {
+            for (var i = 0; i < lidgrenPeer.Connections.Count; i++) {
+                var conn = lidgrenPeer.Connections[i];
+                if (conn.RemoteUniqueIdentifier == peerUid) return conn;
+            }
+
+            return null;
+        }
+
+        public void sendTo(long peerUid, LimeMessage message) {
+            var conn = getPeerByUid(peerUid);
+            if (conn == null) {
+                throw new ApplicationException("tried to send message to nonexistent peer");
+            }
+            sendTo(conn, message);
+        }
+        
         public void sendTo(NetConnection conn, LimeMessage message) {
             var packet = lidgrenPeer.CreateMessage();
             message.write(packet);
