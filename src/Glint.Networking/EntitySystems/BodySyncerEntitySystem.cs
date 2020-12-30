@@ -175,6 +175,9 @@ namespace Glint.Networking.EntitySystems {
                         break;
                     }
                     case BodyLifetimeUpdate lifetimeUpdate: {
+                        // we can ignore local lifetime updates
+                        if (isLocalBodyUpdate) break;
+                        
                         if (!lifetimeUpdate.exists) {
                             // the body is supposed to be dead, destroy it
                             var body = findBodyById(entities, bodyUpdate.bodyId);
@@ -188,8 +191,6 @@ namespace Glint.Networking.EntitySystems {
                             cachedKinStates.Remove(body);
                         }
                         else {
-                            if (isLocalBodyUpdate) break;
-
                             // let's create our echo entity
                             var syncEntityName = $"{SYNC_PREFIX}_{bodyUpdate.bodyId}";
                             var syncNt = createSyncedEntity(syncEntityName, bodyUpdate.syncTag);
