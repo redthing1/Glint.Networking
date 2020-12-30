@@ -12,8 +12,8 @@ namespace Lime {
         public Action<Verbosity, string> onLog = (level, s) => { /* default is to just discard */
         };
 
-        public Action<NetConnection> onPeerConnected;
-        public Action<NetConnection> onPeerDisconnected;
+        public Action<NetConnection>? onPeerConnected;
+        public Action<NetConnection>? onPeerDisconnected;
         public Action<LimeMessage>? onMessage;
         public Action? onUpdate;
         private LimeMessageFactory msgFactory = new LimeMessageFactory();
