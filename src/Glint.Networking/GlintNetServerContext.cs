@@ -10,13 +10,14 @@ namespace Glint.Networking {
     /// </summary>
     public class GlintNetServerContext {
         public Config config;
+        public List<Assembly> assemblies = new List<Assembly>();
         public LimeServer? serverNode;
         public GlintNetServer? server;
         public List<NetPlayer> clients = new List<NetPlayer>();
-        public List<Assembly> assemblies = new List<Assembly>();
+        public NetScene scene = new NetScene();
 
         public class Config {
-            public string protocol;
+            public string protocol = "Glint-Net";
             public int port;
             public int ups;
             public int heartbeatInterval = 2000;
