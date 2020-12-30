@@ -57,7 +57,7 @@ namespace Glint.Networking.EntitySystems {
 
                 var body = nt.GetComponent<SyncBody>();
                 if (body == null) continue;
-                
+
                 if (body.bodyId == bodyId)
                     return body;
             }
@@ -129,7 +129,7 @@ namespace Glint.Networking.EntitySystems {
                 if (isLocalBodyUpdate) {
                     // this is for resolving desyncs from an authoritative update
                     // TODO: confirm local bodies with local body updates
-                    continue;
+                    // continue;
                 }
 
                 // 1. find corresponding body
@@ -137,6 +137,7 @@ namespace Glint.Networking.EntitySystems {
                 var timeNow = NetworkTime.time();
                 var timeOffsetMs = timeNow - bodyUpdate.time;
                 if (body == null) {
+                    GAssert.Ensure(!isLocalBodyUpdate); // this must be a remote body
                     // no matching body. for now we should create one
                     var syncEntityName = $"{SYNC_PREFIX}_{bodyUpdate.bodyId}";
                     var syncNt = createSyncedEntity(syncEntityName, bodyUpdate.syncTag);
@@ -166,9 +167,17 @@ namespace Glint.Networking.EntitySystems {
 
                     switch (bodyUpdate) {
                         case BodyKinUpdate kinUpdate: {
-                            // if no interpolation, then immediately apply the update
                             if (body.interpolationType == SyncBody.InterpolationType.None)
+                                // if no interpolation, then immediately apply the update
                                 bodyUpdate.applyTo(body);
+                            else if (isLocalBodyUpdate) {
+                                // we do a sanity check to make sure our local entity isn't desynced
+                                var wasDesynced = resolveLocalDesync(body, kinUpdate);
+                                if (wasDesynced) {
+                                    Global.log.trace(
+                                        $"resolved desync for body {body}");
+                                }
+                            }
                             else {
                                 // store in cache to be used by interpolator
                                 GAssert.Ensure(cachedKinStates.ContainsKey(body));
@@ -206,6 +215,18 @@ namespace Glint.Networking.EntitySystems {
                 }
             }
 #endif
+        }
+
+        /// <summary>
+        /// check if a local body is desynced, if so, resolve
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="kinUpdate"></param>
+        /// <returns>whether a desync was present</returns>
+        private bool resolveLocalDesync(SyncBody body, BodyKinUpdate kinUpdate) {
+            // check if we are desynced
+
+            return false; // no desync
         }
 
         /// <summary>
