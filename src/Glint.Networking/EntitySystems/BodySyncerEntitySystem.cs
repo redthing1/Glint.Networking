@@ -137,7 +137,8 @@ namespace Glint.Networking.EntitySystems {
                 var timeNow = NetworkTime.time();
                 var timeOffsetMs = timeNow - bodyUpdate.time;
                 if (body == null) {
-                    GAssert.Ensure(!isLocalBodyUpdate); // this must be a remote body
+                    // this must be a remote body. if it's a client body, it's likely an echo of a dead object
+                    if (isLocalBodyUpdate) continue;
                     // no matching body. for now we should create one
                     var syncEntityName = $"{SYNC_PREFIX}_{bodyUpdate.bodyId}";
                     var syncNt = createSyncedEntity(syncEntityName, bodyUpdate.syncTag);
@@ -254,6 +255,7 @@ namespace Glint.Networking.EntitySystems {
                 }
 
                 var interpT = (timeSince / timeDiff); // progress in interpolation
+                // Global.log.trace($"interpolate T: {interpT} (sincerecv={timeSince}, diff={timeDiff}");
 
                 // // just apply directly
                 // update1.applyTo(body);
