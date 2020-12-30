@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
@@ -24,6 +25,7 @@ namespace Glint.Networking.Pipeline.Relays {
                 // save the user
                 var clientPeer = new NetPlayer(msg.myUid, msg.myNick);
                 context.clients.Add(clientPeer);
+                context.scene.bodies[clientPeer] = new List<NetScene.Body>();
                 context.server.onClientJoin?.Invoke(clientPeer); // call handler
                 Global.log.trace($"added client {clientPeer}");
                 return true;

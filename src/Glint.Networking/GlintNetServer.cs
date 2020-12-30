@@ -134,7 +134,7 @@ namespace Glint.Networking {
             // dynamically resolve the handlers
             if (handlers.canHandle(msgType)) {
                 var handler = handlers.resolve(msgType);
-                handler.handle(msg);
+                var status = handler.handle(msg);
             }
             else {
                 Global.log.err($"no handler found for {msgType.Name}");
@@ -162,6 +162,7 @@ namespace Glint.Networking {
             // remove the user
             context.server!.onClientLeave?.Invoke(clientPeer); // call handler
             context.clients.Remove(clientPeer);
+            context.scene.bodies.Remove(clientPeer);
             Global.log.trace($"removed client {clientPeer}");
 
             Global.log.trace($"sending goodbye on behalf of {peer.RemoteUniqueIdentifier}");

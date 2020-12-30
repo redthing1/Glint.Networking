@@ -4,7 +4,7 @@ using Glint.Networking.Messages.Types;
 namespace Glint.Networking.Game {
     public class NetScene {
         public struct Body {
-            public uint ownerUid;
+            public long ownerUid;
             public long lastUpdateTime;
             public uint id;
             public uint syncTag;
@@ -13,7 +13,7 @@ namespace Glint.Networking.Game {
             public float angle;
             public float angularVelocity;
 
-            public Body(uint ownerUid, long lastUpdateTime, uint id, uint syncTag, PackedVec2 pos, PackedVec2 vel,
+            public Body(long ownerUid, long lastUpdateTime, uint id, uint syncTag, PackedVec2 pos, PackedVec2 vel,
                 float angle, float angularVelocity) {
                 this.ownerUid = ownerUid;
                 this.lastUpdateTime = lastUpdateTime;
