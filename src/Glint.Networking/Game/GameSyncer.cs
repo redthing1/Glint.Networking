@@ -8,6 +8,7 @@ using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
 using Glint.Networking.Pipeline;
 using Glint.Networking.Pipeline.Handlers;
+using Glint.Networking.Pipeline.Messages;
 using Glint.Networking.Utils.Collections;
 using Glint.Util;
 using Lidgren.Network;

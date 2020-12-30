@@ -1,6 +1,7 @@
 using Glint.Networking.Components;
 using Glint.Networking.Messages;
 using Glint.Networking.Messages.Types;
+using Glint.Networking.Pipeline.Messages;
 
 namespace Glint.Networking.Game.Updates {
     public abstract class BodyUpdate : GameUpdate {

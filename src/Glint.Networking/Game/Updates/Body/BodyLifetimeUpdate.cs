@@ -1,5 +1,6 @@
 using Glint.Networking.Components;
 using Glint.Networking.Messages;
+using Glint.Networking.Pipeline.Messages;
 
 namespace Glint.Networking.Game.Updates {
     public class BodyLifetimeUpdate : BodyUpdate {

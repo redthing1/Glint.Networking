@@ -3,7 +3,7 @@ using Lidgren.Network;
 using Lime.Messages;
 using MsgPack.Serialization;
 
-namespace Glint.Networking.Messages {
+namespace Glint.Networking.Pipeline.Messages {
     public abstract class GameUpdateMessage : LimeMessage {
         [MessagePackMember(0)] public long time { get; set; }
         [MessagePackMember(1)] public long sourceUid { get; set; }

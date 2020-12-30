@@ -1,4 +1,5 @@
 using Glint.Networking.Components;
+using Glint.Networking.Pipeline.Messages;
 using MsgPack.Serialization;
 
 namespace Glint.Networking.Messages {

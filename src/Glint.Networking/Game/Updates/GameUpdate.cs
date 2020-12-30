@@ -1,4 +1,5 @@
 using Glint.Networking.Messages;
+using Glint.Networking.Pipeline.Messages;
 
 namespace Glint.Networking.Game.Updates {
     public abstract class GameUpdate {
