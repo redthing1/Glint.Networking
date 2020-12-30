@@ -26,11 +26,16 @@ namespace Lime {
             return (T) result;
         }
 
-        public LimeMessage read(byte[] buffer) {
+        public LimeMessage? read(byte[] buffer) {
             int offset = 1;
             var result = messages[buffer[0]]; // get matching instance
-            MsgPackSerializer.DeserializeObject(result, buffer, offset);
-            return result;
+            try {
+                MsgPackSerializer.DeserializeObject(result, buffer, offset);
+                return result;
+            }
+            catch (Exception e) {
+                return null;
+            }
         }
 
         private void buildInstances(Assembly[] messageAssemblies) {

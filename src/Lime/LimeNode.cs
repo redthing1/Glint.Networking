@@ -85,6 +85,11 @@ namespace Lime {
                         // data packets are always serialized messages
                         var rawPacketData = msg.ReadBytes(msg.LengthBytes);
                         var message = msgFactory.read(rawPacketData);
+                        if (message == null) {
+                            // could not deserialize
+                            onLog(Verbosity.Error, $"failed to deserialize message of length {rawPacketData.Length}");
+                            break;
+                        }
                         message.source = msg.SenderConnection;
                         onMessage?.Invoke(message);
                         break;
