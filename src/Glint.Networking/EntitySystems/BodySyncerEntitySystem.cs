@@ -162,7 +162,8 @@ namespace Glint.Networking.EntitySystems {
                     if (timeOffsetMs < 0) {
                         // we're getting updates from the future? log in relative time
                         Global.log.warn(
-                            $"received an update {timeOffsetMs}ms in the future (current: {NetworkTime.timeSinceStart}), (frame {bodyUpdate.time - NetworkTime.startTime})");
+                            $"received an update {timeOffsetMs}ms in the future (current: {NetworkTime.timeSinceStart})," +
+                            $" (frame {bodyUpdate.time - NetworkTime.startTime}). perhaps system clocks are out of sync?");
                     }
 
                     switch (bodyUpdate) {
