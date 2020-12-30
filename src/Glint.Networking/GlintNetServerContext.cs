@@ -10,8 +10,8 @@ namespace Glint.Networking {
     /// </summary>
     public class GlintNetServerContext {
         public Config config;
-        public LimeServer serverNode;
-        public GlintNetServer server;
+        public LimeServer? serverNode;
+        public GlintNetServer? server;
         public List<NetPlayer> clients = new List<NetPlayer>();
         public List<Assembly> assemblies = new List<Assembly>();
 
@@ -20,7 +20,6 @@ namespace Glint.Networking {
             public int port;
             public int ups;
             public int heartbeatInterval = 2000;
-            public Logger.Verbosity verbosity;
             public bool logMessages;
             public float timeout;
 #if DEBUG

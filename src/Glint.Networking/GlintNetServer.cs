@@ -68,7 +68,6 @@ namespace Glint.Networking {
         }
 
         public void configure() {
-            Global.log.verbosity = context.config.verbosity;
             configureDefaultHandlers();
         }
 
