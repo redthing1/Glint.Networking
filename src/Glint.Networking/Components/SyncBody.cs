@@ -40,7 +40,7 @@ namespace Glint.Networking.Components {
             base.OnRemovedFromEntity();
             cancelTweens();
 
-            var syncer = Core.Services.GetService<GameSyncer>();
+            var syncer = Core.Services.GetService<ClientGameSyncer>();
             // check if owned by me
             if (owner == syncer?.uid) {
                 // send destroy signal
