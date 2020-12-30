@@ -14,25 +14,11 @@ namespace Glint.Networking.Pipeline {
         /// </summary>
         /// <param name="handler"></param>
         /// <typeparam name="TMessage"></typeparam>
-        public void register<TMessage>(MessageHandler<TMessage> handler) where TMessage : LimeMessage =>
-            registerAs<TMessage, TMessage>(handler);
-
-        /// <summary>
-        /// register a handler for a single type of message, but coercing to allow a base-class handler to handle derived types
-        /// </summary>
-        /// <param name="handler"></param>
-        /// <typeparam name="TRegistration"></typeparam>
-        /// <typeparam name="TMessage"></typeparam>
-        private void registerAs<TRegistration, TMessage>(MessageHandler<TRegistration> handler)
-            where TMessage : LimeMessage where TRegistration : LimeMessage {
+        public void register<TMessage>(MessageHandler<TMessage> handler) where TMessage : LimeMessage {
             handlers[typeof(TMessage)] = handler;
         }
 
-        public void unregister<TMessage>(MessageHandler<TMessage> handler) where TMessage : LimeMessage =>
-            unregisterAs<TMessage, TMessage>(handler);
-
-        private void unregisterAs<TRegistration, TMessage>(MessageHandler<TRegistration> handler)
-            where TMessage : LimeMessage where TRegistration : LimeMessage {
+        public void unregister<TMessage>() where TMessage : LimeMessage {
             handlers.Remove(typeof(TMessage));
         }
 
