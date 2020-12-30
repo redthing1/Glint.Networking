@@ -16,6 +16,26 @@ namespace Glint.Networking.Pipeline.Relays {
 
     public class BodyKinematicUpdateRelay : BodyUpdateRelay<BodyKinematicUpdateMessage> {
         public BodyKinematicUpdateRelay(GlintNetServerContext context) : base(context) { }
+
+        protected override bool process(BodyKinematicUpdateMessage msg) {
+            var player = context.clients.SingleOrDefault(x => x.uid == msg.sourceUid);
+            if (player == null)
+                return false;
+            var now = NetworkTime.time();
+
+            var userBodies = context.scene.bodies[player];
+            var body = userBodies.SingleOrDefault(x => x.id == msg.bodyId);
+            if (body == null) return false;
+
+            body.lastReceivedTime = now;
+            body.lastSnapshotTime = msg.time;
+            body.pos = msg.pos;
+            body.vel = msg.vel;
+            body.angle = msg.angle;
+            body.angularVelocity = msg.angularVelocity;
+
+            return true;
+        }
     }
 
     public class BodyLifetimeUpdateRelay : BodyUpdateRelay<BodyLifetimeUpdateMessage> {
@@ -32,16 +52,17 @@ namespace Glint.Networking.Pipeline.Relays {
                 var userBodies = context.scene.bodies[player];
                 if (userBodies.Any(x => x.id == msg.bodyId))
                     return false;
-                userBodies.Add(new NetScene.Body(msg.sourceUid, now, msg.bodyId, msg.syncTag, new PackedVec2(0, 0),
+                userBodies.Add(new NetScene.Body(msg.sourceUid, msg.time, now, msg.bodyId, msg.syncTag, new PackedVec2(0, 0),
                     new PackedVec2(0, 0), 0, 0));
             }
             else {
                 // remove
                 // TODO: assert exists
                 var userBodies = context.scene.bodies[player];
-                if (userBodies.All(x => x.id != msg.bodyId))
+                var body = userBodies.SingleOrDefault(x => x.id == msg.bodyId);
+                if (body == null)
                     return false;
-                userBodies.RemoveAll(x => x.id == msg.bodyId);
+                userBodies.Remove(body);
             }
 
             return true;

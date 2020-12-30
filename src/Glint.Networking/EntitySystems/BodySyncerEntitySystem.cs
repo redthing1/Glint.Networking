@@ -86,7 +86,10 @@ namespace Glint.Networking.EntitySystems {
                 }
 
                 // assert ownership over the entity
-                body.owner = syncer.uid;
+                if (body.owner != syncer.uid) {
+                    body.owner = syncer.uid;
+                    body.sendLifetimeCreated();
+                }
 
                 // check if this entity is due for us to send a snapshot of it
                 if (Time.TotalTime > body.nextUpdate) {
