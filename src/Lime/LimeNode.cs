@@ -8,15 +8,20 @@ namespace Lime {
     public abstract class LimeNode {
         protected NetPeer lidgrenPeer;
         public long uid => lidgrenPeer.UniqueIdentifier;
-        public Action<Verbosity, string> onLog = (level, s) => { /* default is to just discard */ };
+
+        public Action<Verbosity, string> onLog = (level, s) => { /* default is to just discard */
+        };
+
         public Action<NetConnection> onPeerConnected;
         public Action<NetConnection> onPeerDisconnected;
-        public Action<LimeMessage> onMessage;
+        public Action<LimeMessage>? onMessage;
+        public Action? onUpdate;
         private LimeMessageFactory msgFactory = new LimeMessageFactory();
         public Configuration config { get; }
 
         public class Configuration {
             public NetPeerConfiguration peerConfig;
+
             /// <summary>
             /// the assemblies from which to load message types. this must be identical (including order) on client and server!
             /// </summary>
@@ -68,10 +73,10 @@ namespace Lime {
                         var reason = msg.ReadString();
                         switch (status) {
                             case NetConnectionStatus.Connected:
-                                onPeerConnected(msg.SenderConnection);
+                                onPeerConnected?.Invoke(msg.SenderConnection);
                                 break;
                             case NetConnectionStatus.Disconnected:
-                                onPeerDisconnected(msg.SenderConnection);
+                                onPeerDisconnected?.Invoke(msg.SenderConnection);
                                 break;
                         }
 
@@ -81,7 +86,7 @@ namespace Lime {
                         var rawPacketData = msg.ReadBytes(msg.LengthBytes);
                         var message = msgFactory.read(rawPacketData);
                         message.source = msg.SenderConnection;
-                        onMessage(message);
+                        onMessage?.Invoke(message);
                         break;
                     default:
                         onLog(Verbosity.Warning, $"unhandled message type {msg.MessageType}");
@@ -90,6 +95,7 @@ namespace Lime {
 
                 lidgrenPeer.Recycle(msg);
             }
+            onUpdate?.Invoke();
         }
 
         public T getMessage<T>() where T : LimeMessage {
