@@ -52,9 +52,20 @@ namespace Glint.Networking {
         public Action<NetPlayer>? onClientJoin;
         public Action<NetPlayer>? onClientLeave;
 
-        public GlintNetServer(GlintNetServerContext.Config config) {
+        public GlintNetServer(LimeServer node, GlintNetServerContext.Config config) {
+            this.node = node;
+            
             context = new GlintNetServerContext(config);
             context.server = this;
+
+            // connect node hooks to glint (logs)
+            node.configureGlint();
+            node.initialize();
+            context.serverNode = node;
+            
+            configureDefaultHandlers();
+
+            Global.log.info("initialized networking host");
         }
 
         private void configureDefaultHandlers() {
@@ -65,37 +76,9 @@ namespace Glint.Networking {
             handlers.register(new BodyLifetimeUpdateRelay(context));
         }
 
-        public void initialize() {
-            configureDefaultHandlers();
-        }
-
-        public void run(CancellationTokenSource? tokenSource = null) {
-            var peerConfig =
-                NetConfigurator.createServerPeerConfig(context.config.protocol, context.config.port,
-                    context.config.timeout);
-#if DEBUG
-            if (context.config.simulateLag) {
-                Global.log.warn("lag simulation enabled");
-                peerConfig.SimulatedLoss = 0.1f;
-                peerConfig.SimulatedRandomLatency = 0.5f;
-            }
-#endif
-            node = new LimeServer(new LimeNode.Configuration {
-                peerConfig = peerConfig,
-                messageAssemblies = new[] {Assembly.GetExecutingAssembly(), Assembly.GetCallingAssembly()}
-                    .Concat(context.assemblies).ToArray()
-            });
-            // connect node hooks to glint (logs)
-            node.configureGlint();
-            node.initialize();
-
-            Global.log.info("initialized networking host");
-
+        public void start(CancellationTokenSource? tokenSource = null) {
             // log config in trace
-            Global.log.trace($"timeout: {context.config.timeout:n2}s");
             Global.log.trace($"update: {1000 / context.config.ups}ms");
-
-            context.serverNode = node;
 
             // wire callbacks
             node.onPeerConnected += onPeerConnected;
@@ -124,6 +107,10 @@ namespace Glint.Networking {
             }
 
             stopwatch.Stop();
+        }
+
+        public void stop() {
+            node.stop();
         }
 
         private void onMessage(LimeMessage msg) {
