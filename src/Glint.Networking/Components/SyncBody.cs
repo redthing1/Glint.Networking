@@ -48,6 +48,9 @@ namespace Glint.Networking.Components {
                 lifetimeMessage.createFrom(this);
                 lifetimeMessage.exists = false;
                 syncer.sendGameUpdate(lifetimeMessage);
+                if (syncer.debug) {
+                    Global.log.trace($"sent local SyncBody destruction {lifetimeMessage}");
+                }
             }
         }
     }
