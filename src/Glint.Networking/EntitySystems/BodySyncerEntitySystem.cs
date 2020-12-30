@@ -1,29 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Glint.Networking.Components;
 using Glint.Networking.Game;
 using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
 using Glint.Networking.Utils;
-using Glint.Networking.Utils.Collections;
 using Glint.Util;
-using Microsoft.Xna.Framework;
 using Nez;
-using Nez.Tweens;
 
 namespace Glint.Networking.EntitySystems {
     /// <summary>
     /// automatically synchronizes from GameSyncer message queues to local entities
     /// </summary>
-    public class BodySyncerEntitySystem : EntitySystem {
+    public class RemoteBodySyncerSystem : EntitySystem {
         private readonly GameSyncer syncer;
         public Func<string, uint, Entity?> createSyncedEntity;
         public const string SYNC_PREFIX = "_sync";
 
         private Dictionary<SyncBody, KinStateCache> cachedKinStates = new Dictionary<SyncBody, KinStateCache>();
 
-        public BodySyncerEntitySystem(GameSyncer syncer, Matcher matcher) :
+        public RemoteBodySyncerSystem(GameSyncer syncer, Matcher matcher) :
             base(matcher) {
             this.syncer = syncer;
             syncer.gamePeerConnected += gamePeerConnected;
@@ -228,6 +226,22 @@ namespace Glint.Networking.EntitySystems {
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        ///     automatically create matcher for all SyncBody subclasses
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
+        public static Matcher createMatcher(Assembly assembly) {
+            var syncBodyTypes = new List<Type>();
+            foreach (var type in assembly.DefinedTypes) {
+                if (type.IsSubclassOf(typeof(SyncBody))) {
+                    syncBodyTypes.Add(type);
+                }
+            }
+
+            return new Matcher().One(syncBodyTypes.ToArray());
         }
     }
 }
