@@ -179,7 +179,7 @@ namespace Glint.Networking.EntitySystems {
                             // the body is supposed to be dead, destroy it
                             var body = findBodyById(entities, bodyUpdate.bodyId);
                             if (body == null) {
-                                Global.log.err(
+                                Global.log.warn(
                                     $"received a lifetime update to destroy an unknown body (id {bodyUpdate.bodyId})");
                                 break;
                             }
