@@ -38,12 +38,15 @@ namespace Glint.Networking.Pipeline.Relays {
             if (msg.here) {
                 // since this user just joined, we want to introduce everyone else to them
                 Global.log.trace($"resending {context.clients.Count} introductions");
+                var player = context.clients.Single(x => x.uid == msg.myUid);
                 foreach (var client in context.clients) {
                     var intro = context.serverNode.getMessage<PresenceMessage>();
                     intro.createFrom(client);
                     intro.here = true;
                     context.serverNode.sendToAll(intro);
                 }
+                
+                context.server.joinedPlayerFollowUp(player);
             }
         }
     }
