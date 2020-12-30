@@ -107,10 +107,18 @@ namespace Glint.Networking.Game {
             return msg;
         }
 
+        /// <summary>
+        /// queue a game update to be sent at next update
+        /// </summary>
+        /// <param name="msg"></param>
         public void queueGameUpdate(GameUpdateMessage msg) {
             outgoingGameUpdates.Enqueue(msg);
         }
 
+        /// <summary>
+        /// immediately send a game update
+        /// </summary>
+        /// <param name="msg"></param>
         public void sendGameUpdate(GameUpdateMessage msg) {
             msg.sourceUid = netNode.uid;
             netNode.sendToAll(msg);
