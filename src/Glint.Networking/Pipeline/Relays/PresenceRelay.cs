@@ -43,7 +43,7 @@ namespace Glint.Networking.Pipeline.Relays {
                     var intro = context.serverNode.getMessage<PresenceMessage>();
                     intro.createFrom(client);
                     intro.here = true;
-                    context.serverNode.sendToAll(intro);
+                    context.serverNode.sendTo(player.uid, intro);
                 }
                 
                 context.server.joinedPlayerFollowUp(player);
