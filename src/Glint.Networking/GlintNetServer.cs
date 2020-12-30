@@ -67,7 +67,7 @@ namespace Glint.Networking {
                 new BodyRelayMessageHandler(context));
         }
 
-        public void configure() {
+        public void initialize() {
             configureDefaultHandlers();
         }
 
@@ -163,15 +163,15 @@ namespace Glint.Networking {
             }
 
             // remove the user
-            context.server.onClientLeave?.Invoke(clientPeer); // call handler
+            context.server!.onClientLeave?.Invoke(clientPeer); // call handler
             context.clients.Remove(clientPeer);
             Global.log.trace($"removed client {clientPeer}");
 
             Global.log.trace($"sending goodbye on behalf of {peer.RemoteUniqueIdentifier}");
-            var bye = context.serverNode.getMessage<PresenceMessage>();
+            var bye = context.serverNode!.getMessage<PresenceMessage>();
             bye.createFrom(clientPeer);
             bye.here = false;
-            context.serverNode.sendToAll(bye);
+            context.serverNode!.sendToAll(bye);
         }
     }
 }
