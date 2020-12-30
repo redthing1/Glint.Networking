@@ -1,11 +1,10 @@
 using System.Linq;
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
-using Glint.Util;
 
-namespace Glint.Networking.Handlers.Server {
-    public class PresenceRelayHandler : ServerMessageRelay<PresenceMessage> {
-        public PresenceRelayHandler(GlintNetServerContext context) : base(context) { }
+namespace Glint.Networking.Pipeline.Relays {
+    public class PresenceRelay : ServerMessageRelay<PresenceMessage> {
+        public PresenceRelay(GlintNetServerContext context) : base(context) { }
 
         protected override bool validate(PresenceMessage msg) {
             if (msg.here) {

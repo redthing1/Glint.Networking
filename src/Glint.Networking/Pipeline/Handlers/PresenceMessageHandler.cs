@@ -2,9 +2,8 @@ using System.Linq;
 using Glint.Networking.Game;
 using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
-using Glint.Util;
 
-namespace Glint.Networking.Handlers.Client {
+namespace Glint.Networking.Pipeline.Handlers {
     public class PresenceMessageHandler : ClientMessageHandler<PresenceMessage> {
         public PresenceMessageHandler(GameSyncer syncer) : base(syncer) { }
 

@@ -1,6 +1,6 @@
 using Glint.Networking.Messages;
 
-namespace Glint.Networking.Handlers.Server {
+namespace Glint.Networking.Pipeline.Relays {
     public abstract class BodyUpdateRelay : ServerMessageRelay<BodyUpdateMessage> {
         public BodyUpdateRelay(GlintNetServerContext context) : base(context) { }
 

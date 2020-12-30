@@ -1,7 +1,6 @@
-using Glint.Util;
 using Lime.Messages;
 
-namespace Glint.Networking.Handlers {
+namespace Glint.Networking.Pipeline {
     public abstract class ServerMessageRelay<TMessage> : MessageHandler<TMessage> where TMessage : LimeMessage {
         protected GlintNetServerContext context;
 

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Glint.Networking.Game;
-using Glint.Networking.Handlers;
-using Glint.Networking.Handlers.Server;
 using Glint.Networking.Messages;
+using Glint.Networking.Pipeline;
+using Glint.Networking.Pipeline.Relays;
 using Lidgren.Network;
 using Lime;
 using Lime.Messages;
@@ -58,7 +58,7 @@ namespace Glint.Networking {
 
         private void configureDefaultHandlers() {
             // presence
-            handlers.register(new PresenceRelayHandler(context));
+            handlers.register(new PresenceRelay(context));
             // body updates
             handlers.register(new BodyKinematicUpdateRelay(context));
             handlers.register(new BodyLifetimeUpdateRelay(context));

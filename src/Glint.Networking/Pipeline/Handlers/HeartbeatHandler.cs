@@ -1,7 +1,7 @@
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
 
-namespace Glint.Networking.Handlers.Client {
+namespace Glint.Networking.Pipeline.Handlers {
     public class HeartbeatHandler : ClientMessageHandler<HeartbeatMessage> {
         public HeartbeatHandler(GameSyncer syncer) : base(syncer) { }
 

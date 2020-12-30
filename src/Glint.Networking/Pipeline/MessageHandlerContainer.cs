@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Lime.Messages;
 
-namespace Glint.Networking.Handlers {
+namespace Glint.Networking.Pipeline {
     public class MessageHandlerContainer {
         private Dictionary<Type, IMessageHandler> handlers = new Dictionary<Type, IMessageHandler>();
 

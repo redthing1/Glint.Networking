@@ -1,7 +1,7 @@
 using Glint.Networking.Game;
 using Lime.Messages;
 
-namespace Glint.Networking.Handlers {
+namespace Glint.Networking.Pipeline {
     public abstract class ClientMessageHandler<TMessage> : MessageHandler<TMessage> where TMessage : LimeMessage {
         protected GameSyncer syncer;
 

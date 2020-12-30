@@ -1,6 +1,6 @@
 using Lime.Messages;
 
-namespace Glint.Networking.Handlers {
+namespace Glint.Networking.Pipeline {
     public interface IMessageHandler {
         bool handle(LimeMessage msg);
     }
