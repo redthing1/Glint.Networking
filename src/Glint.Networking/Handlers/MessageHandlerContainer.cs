@@ -28,6 +28,14 @@ namespace Glint.Networking.Handlers {
             handlers[typeof(TMessage)] = handler;
         }
 
+        public void unregister<TMessage>(MessageHandler<TMessage> handler) where TMessage : LimeMessage =>
+            unregisterAs<TMessage, TMessage>(handler);
+
+        public void unregisterAs<TRegistration, TMessage>(MessageHandler<TRegistration> handler)
+            where TMessage : LimeMessage where TRegistration : LimeMessage {
+            handlers.Remove(typeof(TMessage));
+        }
+
         public bool canHandle(Type type) => handlers.ContainsKey(type);
 
         public bool canHandle<TMessage>() where TMessage : LimeMessage => canHandle(typeof(TMessage));
