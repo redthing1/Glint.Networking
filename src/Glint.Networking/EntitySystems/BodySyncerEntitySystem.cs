@@ -42,31 +42,46 @@ namespace Glint.Networking.EntitySystems {
             // wait for connection to be valid
             if (!syncer.connected) return;
 
-            var entitiesToRemove = new List<Entity>();
+            synchronizeEntities(entities);
+            
+            processBodyUpdates(entities);
+            
+            updateInterpolations();
+        }
+
+        private SyncBody? findBodyById(List<Entity> entities, uint bodyId) {
+            return entities
+                .Where(x => !x.IsDestroyed) // skip just-removed entities
+                .Select(x => x.GetComponent<SyncBody>())
+                .SingleOrDefault(x => x.bodyId == bodyId);
+        }
+
+        private void synchronizeEntities(List<Entity> entities) {
+            var orphanEntities = new List<Entity>();
 
             foreach (var entity in entities) {
                 var body = entity.GetComponent<SyncBody>();
-                if (body == null) continue; // skip any entities without body (in case no types are matched)
-                // check if entity information needs to be updated
-                // we only need to broadcast on entities that we own
-                if (entity.Name.StartsWith(SYNC_PREFIX)) {
-                    // we don't own this one
-                    // make sure this peer still exists
+                if (body == null) continue; // skip any entities without body
+
+                // skip any entities that are remote
+                if (entity.Name.StartsWith(SYNC_PREFIX)) { // we don't own this one
+                    // make sure this peer still exists, and that the body isn't orphaned
                     if (syncer.peers.All(x => x.uid != body.owner)) {
                         // peer no longer exists!
-                        entitiesToRemove.Add(entity);
+                        orphanEntities.Add(entity);
                         Global.log.trace($"removing body for nonexistent peer {body.owner}");
                         cachedKinStates.Remove(body); // remove from cache
                     }
 
                     continue;
                 }
-                else {
-                    // assert ownership
-                    body.owner = syncer.uid;
-                }
 
+                // assert ownership over the entity
+                body.owner = syncer.uid;
+
+                // check if this entity is due for us to send a snapshot of it
                 if (Time.TotalTime > body.nextUpdate) {
+                    // set timer for next snapshot
                     body.nextUpdate = Time.TotalTime + 1f / syncer.systemUps;
 
                     // send update message
@@ -77,18 +92,24 @@ namespace Glint.Networking.EntitySystems {
                 }
             }
 
-            foreach (var entity in entitiesToRemove) {
+            // get rid of orphans
+            foreach (var entity in orphanEntities) {
                 entity.Destroy();
             }
+        }
 
-            var livingEntities = new List<Entity>(entities.Except(entitiesToRemove));
-
+        private void processBodyUpdates(List<Entity> entities) {
             // handle queued updates in message queues
             // Global.log.trace($"== body syncer entity system - update() called, pending: {syncer.bodyUpdates.Count}");
             var remoteBodyUpdates = 0U;
             var localBodyUpdates = 0U;
             while (syncer.bodyUpdates.tryDequeue(out var bodyUpdate)) {
                 bool isLocalBodyUpdate = bodyUpdate.sourceUid == syncer.uid;
+                // update counters
+                if (isLocalBodyUpdate)
+                    localBodyUpdates++;
+                else
+                    remoteBodyUpdates++;
 #if DEBUG
                 if (syncer.debug) {
                     // dump update type
@@ -96,17 +117,14 @@ namespace Glint.Networking.EntitySystems {
                 }
 #endif
 
-                // for now, don't apply local body updates
-                // TODO: confirm local bodies with local body updates
-                // this is for resolving desyncs from an authoritative update
                 if (isLocalBodyUpdate) {
-                    localBodyUpdates++;
+                    // this is for resolving desyncs from an authoritative update
+                    // TODO: confirm local bodies with local body updates
                     continue;
                 }
 
                 // 1. find corresponding body
-                var body = livingEntities.Select(x => x.GetComponent<SyncBody>())
-                    .SingleOrDefault(x => x.bodyId == bodyUpdate.bodyId);
+                var body = findBodyById(entities, bodyUpdate.bodyId);
                 var timeNow = NetworkTime.time();
                 var timeOffsetMs = timeNow - bodyUpdate.time;
                 if (body == null) {
@@ -124,7 +142,7 @@ namespace Glint.Networking.EntitySystems {
                     body.Entity = syncNt;
                     body.bodyId = bodyUpdate.bodyId;
                     body.owner = bodyUpdate.sourceUid;
-                    livingEntities.Add(syncNt);
+                    entities.Add(syncNt);
 
                     // update cache
                     cachedKinStates[body] = new KinStateCache();
@@ -139,17 +157,14 @@ namespace Glint.Networking.EntitySystems {
 
                     switch (bodyUpdate) {
                         case BodyKinUpdate kinUpdate: {
-                            // store in cache
-                            GAssert.Ensure(cachedKinStates.ContainsKey(body));
-                            cachedKinStates[body].stateBuf.enqueue(new KinStateCache.StateFrame(kinUpdate, timeNow));
-
-                            // set up things for interpolation
-                            switch (body.interpolationType) {
-                                case SyncBody.InterpolationType.None:
-                                    bodyUpdate.applyTo(body); // just apply the update
-                                    break;
-                                default:
-                                    break;
+                            // if no interpolation, then immediately apply the update
+                            if (body.interpolationType == SyncBody.InterpolationType.None)
+                                bodyUpdate.applyTo(body);
+                            else {
+                                // store in cache to be used by interpolator
+                                GAssert.Ensure(cachedKinStates.ContainsKey(body));
+                                cachedKinStates[body].stateBuf
+                                    .enqueue(new KinStateCache.StateFrame(kinUpdate, timeNow));
                             }
 
                             break;
@@ -166,8 +181,6 @@ namespace Glint.Networking.EntitySystems {
                         }
                     }
                 }
-
-                remoteBodyUpdates++;
             }
 
 #if DEBUG
@@ -184,8 +197,12 @@ namespace Glint.Networking.EntitySystems {
                 }
             }
 #endif
+        }
 
-            // step all interpolations
+        /// <summary>
+        /// step all interpolations using cached kinematic states
+        /// </summary>
+        private void updateInterpolations() {
             foreach (var cachedKinState in cachedKinStates) {
                 var body = cachedKinState.Key;
                 var cache = cachedKinState.Value;
