@@ -43,17 +43,26 @@ namespace Glint.Networking.EntitySystems {
             if (!syncer.connected) return;
 
             synchronizeEntities(entities);
-            
+
             processBodyUpdates(entities);
-            
+
             updateInterpolations();
         }
 
         private SyncBody? findBodyById(List<Entity> entities, uint bodyId) {
-            return entities
-                .Where(x => !x.IsDestroyed) // skip just-removed entities
-                .Select(x => x.GetComponent<SyncBody>())
-                .SingleOrDefault(x => x.bodyId == bodyId);
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < entities.Count; i++) {
+                var nt = entities[i];
+                if (nt.IsDestroyed) continue;
+
+                var body = nt.GetComponent<SyncBody>();
+                if (body == null) continue;
+                
+                if (body.bodyId == bodyId)
+                    return body;
+            }
+
+            return null;
         }
 
         private void synchronizeEntities(List<Entity> entities) {
