@@ -6,6 +6,8 @@ namespace Glint.Networking.Messages.Types {
         [MessagePackMember(0)] public float x { get; set; }
         [MessagePackMember(1)] public float y { get; set; }
 
+        public PackedVec2() { }
+
         public PackedVec2(Vector2 v) : this(v.X, v.Y) { }
 
         public PackedVec2(float x, float y) {
@@ -14,7 +16,7 @@ namespace Glint.Networking.Messages.Types {
         }
 
         public PackedVec2 copy() => new PackedVec2(x, y);
-        
+
         public Vector2 unpack() => new Vector2(x, y);
     }
 }
