@@ -21,7 +21,7 @@ namespace Glint.Networking.Game {
     /// <summary>
     /// connects to a game server and fill message queues with data
     /// </summary>
-    public class GameSyncer {
+    public class GameSyncer : IDisposable {
         public LimeNode netNode { get; }
         public int netUps { get; }
         public int systemUps { get; }
@@ -43,7 +43,7 @@ namespace Glint.Networking.Game {
         /// incoming body updates
         /// </summary>
         public ConcurrentRingQueue<BodyUpdate> incomingBodyUpdates { get; }
-        public ConcurrentQueue<BodyUpdate> outgoingBodyUpdates { get; }
+        public ConcurrentQueue<GameUpdateMessage> outgoingGameUpdates { get; }
         
         protected ITimer nodeUpdateTimer;
         
@@ -73,9 +73,14 @@ namespace Glint.Networking.Game {
             netNode.initialize();
 
             incomingBodyUpdates = new ConcurrentRingQueue<BodyUpdate>(this.ringBufferSize);
-            outgoingBodyUpdates = new ConcurrentQueue<BodyUpdate>();
+            outgoingGameUpdates = new ConcurrentQueue<GameUpdateMessage>();
             
-            wireEvents();
+            // wire events
+            netNode.onPeerConnected += onPeerConnected;
+            netNode.onPeerDisconnected += onPeerDisconnected;
+            netNode.onMessage += onMessage;
+            netNode.onUpdate += onUpdate;
+            
             registerHandlers();
         }
 
@@ -96,16 +101,14 @@ namespace Glint.Networking.Game {
             netNode.stop(); // throw away our network node
         }
 
-        public void wireEvents() {
-            netNode.onPeerConnected += onPeerConnected;
-            netNode.onPeerDisconnected += onPeerDisconnected;
-            netNode.onMessage += onMessage;
-        }
-
         public TGameUpdate createGameUpdate<TGameUpdate>() where TGameUpdate : GameUpdateMessage {
             var msg = netNode.getMessage<TGameUpdate>();
             msg.reset();
             return msg;
+        }
+
+        public void queueGameUpdate(GameUpdateMessage msg) {
+            outgoingGameUpdates.Enqueue(msg);
         }
 
         public void sendGameUpdate(GameUpdateMessage msg) {
@@ -122,6 +125,13 @@ namespace Glint.Networking.Game {
                 // Global.log.trace($"implicitly introduced to peer {peer} via {msg.GetType().Name}");
                 // connectivityUpdates.Enqueue(new ConnectivityUpdate(peer,
                 //     ConnectivityUpdate.ConnectionStatus.Connected));
+            }
+        }
+        
+        private void onUpdate() {
+            // pump outgoing messages
+            while (outgoingGameUpdates.TryDequeue(out var msg)) {
+                sendGameUpdate(msg);
             }
         }
 
@@ -171,6 +181,13 @@ namespace Glint.Networking.Game {
             Global.log.err("confirmed disconnected from server");
             connected = false;
             connectionStatusChanged?.Invoke(connected);
+        }
+
+        public void Dispose() {
+            netNode.onPeerConnected = null;
+            netNode.onPeerDisconnected = null;
+            netNode.onMessage = null;
+            netNode.onUpdate = null;
         }
     }
 }
