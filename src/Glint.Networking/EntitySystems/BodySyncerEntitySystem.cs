@@ -115,7 +115,7 @@ namespace Glint.Networking.EntitySystems {
             // Global.log.trace($"== body syncer entity system - update() called, pending: {syncer.bodyUpdates.Count}");
             var remoteBodyUpdates = 0U;
             var localBodyUpdates = 0U;
-            while (syncer.incomingBodyUpdates.tryDequeue(out var bodyUpdate)) {
+            while (syncer.incomingBodyUpdates.TryDequeue(out var bodyUpdate)) {
                 bool isLocalBodyUpdate = bodyUpdate.sourceUid == syncer.uid;
                 // update counters
                 if (isLocalBodyUpdate)
@@ -135,73 +135,82 @@ namespace Glint.Networking.EntitySystems {
                     // continue;
                 }
 
-                // 1. find corresponding body
-                var body = findBodyById(entities, bodyUpdate.bodyId);
                 var timeNow = NetworkTime.time();
                 var timeOffsetMs = timeNow - bodyUpdate.time;
-                if (body == null) {
-                    // this must be a remote body. if it's a client body, it's likely an echo of a dead object
-                    if (isLocalBodyUpdate) continue;
-                    // no matching body. for now we should create one
-                    var syncEntityName = $"{SYNC_PREFIX}_{bodyUpdate.bodyId}";
-                    var syncNt = createSyncedEntity(syncEntityName, bodyUpdate.syncTag);
-                    if (syncNt == null) {
-                        Global.log.err(
-                            $"failed to create synced entity {syncEntityName} with tag {bodyUpdate.syncTag}");
-                        continue;
-                    }
-
-                    body = syncNt.GetComponent<SyncBody>();
-                    bodyUpdate.applyTo(body); // this is a new body, immediately apply our first update
-                    body.Entity = syncNt;
-                    body.bodyId = bodyUpdate.bodyId;
-                    body.owner = bodyUpdate.sourceUid;
-                    entities.Add(syncNt);
-
-                    // update cache
-                    cachedKinStates[body] = new KinStateCache();
+                if (timeOffsetMs < 0) {
+                    // we're getting updates from the future? log in relative time
+                    Global.log.warn(
+                        $"received an update {timeOffsetMs}ms in the future (current: {NetworkTime.timeSinceStart})," +
+                        $" (frame {bodyUpdate.time - NetworkTime.startTime}). perhaps system clocks are out of sync?");
                 }
-                else {
-                    // 2. apply the body update
-                    if (timeOffsetMs < 0) {
-                        // we're getting updates from the future? log in relative time
-                        Global.log.warn(
-                            $"received an update {timeOffsetMs}ms in the future (current: {NetworkTime.timeSinceStart})," +
-                            $" (frame {bodyUpdate.time - NetworkTime.startTime}). perhaps system clocks are out of sync?");
+
+                switch (bodyUpdate) {
+                    case BodyKinUpdate kinUpdate: {
+                        // find corresponding body
+                        var body = findBodyById(entities, bodyUpdate.bodyId);
+                        if (body == null) {
+                            // we received an update of something we don't know of
+                            Global.log.warn($"received a kinematic update for an unknown body (id {bodyUpdate.bodyId})");
+                            break;
+                        }
+                        
+                        if (body.interpolationType == SyncBody.InterpolationType.None)
+                            // if no interpolation, then immediately apply the update
+                            bodyUpdate.applyTo(body);
+                        else if (isLocalBodyUpdate) {
+                            // we do a sanity check to make sure our local entity isn't desynced
+                            var wasDesynced = resolveLocalDesync(body, kinUpdate);
+                            if (wasDesynced) {
+                                Global.log.trace(
+                                    $"resolved desync for body {body}");
+                            }
+                        }
+                        else {
+                            // store in cache to be used by interpolator
+                            GAssert.Ensure(cachedKinStates.ContainsKey(body));
+                            cachedKinStates[body].stateBuf
+                                .enqueue(new KinStateCache.StateFrame(kinUpdate, timeNow));
+                        }
+
+                        break;
                     }
-
-                    switch (bodyUpdate) {
-                        case BodyKinUpdate kinUpdate: {
-                            if (body.interpolationType == SyncBody.InterpolationType.None)
-                                // if no interpolation, then immediately apply the update
-                                bodyUpdate.applyTo(body);
-                            else if (isLocalBodyUpdate) {
-                                // we do a sanity check to make sure our local entity isn't desynced
-                                var wasDesynced = resolveLocalDesync(body, kinUpdate);
-                                if (wasDesynced) {
-                                    Global.log.trace(
-                                        $"resolved desync for body {body}");
-                                }
+                    case BodyLifetimeUpdate lifetimeUpdate: {
+                        if (!lifetimeUpdate.exists) {
+                            // the body is supposed to be dead, destroy it
+                            var body = findBodyById(entities, bodyUpdate.bodyId);
+                            if (body == null) {
+                                Global.log.err(
+                                    $"received a lifetime update to destroy an unknown body (id {bodyUpdate.bodyId})");
+                                break;
                             }
-                            else {
-                                // store in cache to be used by interpolator
-                                GAssert.Ensure(cachedKinStates.ContainsKey(body));
-                                cachedKinStates[body].stateBuf
-                                    .enqueue(new KinStateCache.StateFrame(kinUpdate, timeNow));
-                            }
-
-                            break;
-                        }
-                        case BodyLifetimeUpdate lifetimeUpdate: {
-                            // apply to body
                             lifetimeUpdate.applyTo(body);
-                            // if gone, propagate
-                            if (!lifetimeUpdate.exists) {
-                                cachedKinStates.Remove(body);
+                            // remove snapshot cache
+                            cachedKinStates.Remove(body);
+                        }
+                        else {
+                            if (isLocalBodyUpdate) break;
+
+                            // let's create our echo entity
+                            var syncEntityName = $"{SYNC_PREFIX}_{bodyUpdate.bodyId}";
+                            var syncNt = createSyncedEntity(syncEntityName, bodyUpdate.syncTag);
+                            if (syncNt == null) {
+                                Global.log.err(
+                                    $"failed to create synced entity {syncEntityName} with tag {bodyUpdate.syncTag}");
+                                continue;
                             }
 
-                            break;
+                            var body = syncNt.GetComponent<SyncBody>();
+                            bodyUpdate.applyTo(body); // this is a new body, immediately apply our first update
+                            body.Entity = syncNt;
+                            body.bodyId = bodyUpdate.bodyId;
+                            body.owner = bodyUpdate.sourceUid;
+                            entities.Add(syncNt);
+
+                            // update cache
+                            cachedKinStates[body] = new KinStateCache();
                         }
+
+                        break;
                     }
                 }
             }
@@ -213,10 +222,10 @@ namespace Glint.Networking.EntitySystems {
                 if (totalBodyUpdates > 0) {
                     Global.log.trace(
                         $"processed ({localBodyUpdates} local) and ({remoteBodyUpdates} remote) body updates this frame");
-                    if (totalBodyUpdates >= syncer.incomingBodyUpdates.capacity) {
-                        Global.log.trace(
-                            $"body update ring buffer is full ({syncer.incomingBodyUpdates.capacity}), some updates may have been dropped");
-                    }
+                    // if (totalBodyUpdates >= syncer.incomingBodyUpdates.capacity) {
+                    //     Global.log.trace(
+                    //         $"body update ring buffer is full ({syncer.incomingBodyUpdates.capacity}), some updates may have been dropped");
+                    // }
                 }
             }
 #endif

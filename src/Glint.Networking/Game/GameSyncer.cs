@@ -42,7 +42,7 @@ namespace Glint.Networking.Game {
         /// <summary>
         /// incoming body updates
         /// </summary>
-        public ConcurrentRingQueue<BodyUpdate> incomingBodyUpdates { get; }
+        public ConcurrentQueue<BodyUpdate> incomingBodyUpdates { get; }
         public ConcurrentQueue<GameUpdateMessage> outgoingGameUpdates { get; }
         
         protected ITimer nodeUpdateTimer;
@@ -72,7 +72,7 @@ namespace Glint.Networking.Game {
             netNode.configureGlint();
             netNode.initialize();
 
-            incomingBodyUpdates = new ConcurrentRingQueue<BodyUpdate>(this.ringBufferSize);
+            incomingBodyUpdates = new ConcurrentQueue<BodyUpdate>();
             outgoingGameUpdates = new ConcurrentQueue<GameUpdateMessage>();
             
             // wire events

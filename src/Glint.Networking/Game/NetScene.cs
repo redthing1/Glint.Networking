@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Glint.Networking.Messages;
 using Glint.Networking.Messages.Types;
 
 namespace Glint.Networking.Game {
@@ -25,6 +26,19 @@ namespace Glint.Networking.Game {
                 this.vel = vel;
                 this.angle = angle;
                 this.angularVelocity = angularVelocity;
+            }
+
+            /// <summary>
+            /// create a lifetime update from the last snapshot of this body
+            /// </summary>
+            /// <param name="body"></param>
+            /// <param name="msg"></param>
+            public static void copyTo(Body body, BodyLifetimeUpdateMessage msg) {
+                msg.time = body.lastSnapshotTime;
+                msg.sourceUid = body.ownerUid;
+                msg.bodyId = body.id;
+                msg.syncTag = body.syncTag;
+                msg.exists = true;
             }
         }
 

@@ -180,6 +180,19 @@ namespace Glint.Networking {
 
         internal void joinedPlayerFollowUp(NetPlayer netPlayer) {
             // send catch up
+            // 1. get list of all bodies
+            var sceneBodies = new List<NetScene.Body>();
+            foreach (var kvp in context.scene.bodies) {
+                sceneBodies.AddRange(kvp.Value);
+            }
+            if (sceneBodies.Count == 0) return;
+            
+            // 2. send lifetime for all
+            foreach (var body in sceneBodies) {
+                var msg = node.getMessage<BodyLifetimeUpdateMessage>();
+                NetScene.Body.copyTo(body, msg);
+                node.sendTo(netPlayer.uid, msg);
+            }
         }
 
         internal void leftPlayerFollowUp(NetPlayer netPlayer) {

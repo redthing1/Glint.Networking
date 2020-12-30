@@ -14,7 +14,7 @@ namespace Glint.Networking.Pipeline.Handlers {
             var update = new BodyKinUpdate();
             update.copyFrom(msg);
 
-            syncer.incomingBodyUpdates.enqueue(update);
+            syncer.incomingBodyUpdates.Enqueue(update);
             return true;
         }
     }
@@ -26,7 +26,7 @@ namespace Glint.Networking.Pipeline.Handlers {
             var update = new BodyLifetimeUpdate();
             update.copyFrom(msg);
 
-            syncer.incomingBodyUpdates.enqueue(update);
+            syncer.incomingBodyUpdates.Enqueue(update);
             return true;
         }
     }
