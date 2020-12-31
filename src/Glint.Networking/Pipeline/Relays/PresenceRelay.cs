@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
@@ -10,10 +9,24 @@ namespace Glint.Networking.Pipeline.Relays {
         protected override bool validate(PresenceMessage msg) {
             if (msg.here) {
                 // ensure that the introduction is from a unique user
-                return context.clients.All(x => x.uid != msg.myUid && x.uid != msg.myUid);
-            } else {
+                var unique = context.clients.All(x => x.uid != msg.myUid);
+                if (!unique) {
+                    Global.log.trace(
+                        $"presence update (HERE) was for player who is already here: {msg} (from {msg.myUid})");
+                    return false;
+                }
+
+                return true;
+            }
+            else {
                 // ensure that the client already exists in our list
-                return context.clients.Any(x => x.uid == msg.myUid);
+                var exists = context.clients.SingleOrDefault(x => x.uid == msg.myUid);
+                if (exists == null) {
+                    Global.log.trace($"presence update (GONE) was for unknown player: {msg} (from {msg.myUid})");
+                    return false;
+                }
+
+                return true;
             }
         }
 
@@ -25,17 +38,17 @@ namespace Glint.Networking.Pipeline.Relays {
                 // save the user
                 var player = new NetPlayer(msg.myUid, msg.myNick);
                 context.server!.addPlayer(player);
-                
+
                 return ProcessResult.Relay;
             }
-            
+
             // leave message broadcast is handled by "leftPlayerFollowUp"
             return ProcessResult.Done;
         }
 
         protected override void postprocess(PresenceMessage msg) {
             base.postprocess(msg);
-            
+
             if (msg.here) {
                 // since this user just joined, we want to introduce everyone else to them
                 Global.log.trace($"resending {context.clients.Count} introductions");
@@ -46,7 +59,7 @@ namespace Glint.Networking.Pipeline.Relays {
                     intro.here = true;
                     context.serverNode.sendTo(player.uid, intro);
                 }
-                
+
                 context.server.joinedPlayerFollowUp(player);
             }
         }
