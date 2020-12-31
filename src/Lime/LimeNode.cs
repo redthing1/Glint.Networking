@@ -90,6 +90,7 @@ namespace Lime {
                             onLog(Verbosity.Error, $"failed to deserialize message of length {rawPacketData.Length}");
                             break;
                         }
+
                         message.source = msg.SenderConnection;
                         onMessage?.Invoke(message);
                         break;
@@ -100,6 +101,7 @@ namespace Lime {
 
                 lidgrenPeer.Recycle(msg);
             }
+
             onUpdate?.Invoke();
         }
 
@@ -107,7 +109,7 @@ namespace Lime {
             return msgFactory.get<T>();
         }
 
-        private NetConnection? getPeerByUid(long peerUid) {
+        private NetConnection? getConnByUid(long peerUid) {
             for (var i = 0; i < lidgrenPeer.Connections.Count; i++) {
                 var conn = lidgrenPeer.Connections[i];
                 if (conn.RemoteUniqueIdentifier == peerUid) return conn;
@@ -117,13 +119,14 @@ namespace Lime {
         }
 
         public void sendTo(long peerUid, LimeMessage message) {
-            var conn = getPeerByUid(peerUid);
+            var conn = getConnByUid(peerUid);
             if (conn == null) {
                 throw new ApplicationException("tried to send message to nonexistent peer");
             }
+
             sendTo(conn, message);
         }
-        
+
         public void sendTo(NetConnection conn, LimeMessage message) {
             var packet = lidgrenPeer.CreateMessage();
             msgFactory.write(packet, message);
@@ -134,6 +137,19 @@ namespace Lime {
             foreach (var conn in lidgrenPeer.Connections) {
                 sendTo(conn, message);
             }
+        }
+
+        public NetConnectionStatistics? connectionStatistics(long peerUid) {
+            var conn = getConnByUid(peerUid);
+            if (conn == null) {
+                return null;
+            }
+
+            return conn.Statistics;
+        }
+
+        public NetPeerStatistics nodeStatistics() {
+            return lidgrenPeer.Statistics;
         }
     }
 }
