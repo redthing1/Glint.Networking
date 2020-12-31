@@ -1,5 +1,6 @@
 using Glint.Networking.Components;
 using Glint.Networking.Messages.Types;
+using Lidgren.Network;
 using MsgPack.Serialization;
 
 namespace Glint.Networking.Pipeline.Messages {
@@ -8,6 +9,11 @@ namespace Glint.Networking.Pipeline.Messages {
         [MessagePackMember(5)] public PackedVec2 vel { get; set; }
         [MessagePackMember(6)] public float angle { get; set; }
         [MessagePackMember(7)] public float angularVelocity { get; set; }
+
+        public override NetDeliveryMethod deliveryMethod =>
+            RELIABLE ? NetDeliveryMethod.ReliableSequenced : NetDeliveryMethod.UnreliableSequenced;
+
+        public static bool RELIABLE = false;
 
         public override void createFrom(SyncBody body) {
             base.createFrom(body);
