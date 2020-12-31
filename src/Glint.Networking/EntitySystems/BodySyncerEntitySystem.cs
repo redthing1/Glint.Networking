@@ -150,10 +150,11 @@ namespace Glint.Networking.EntitySystems {
                         var body = findBodyById(entities, bodyUpdate.bodyId);
                         if (body == null) {
                             // we received an update of something we don't know of
-                            Global.log.warn($"received a kinematic update for an unknown body (id {bodyUpdate.bodyId})");
+                            Global.log.warn(
+                                $"received a kinematic update for an unknown body (id {bodyUpdate.bodyId})");
                             break;
                         }
-                        
+
                         if (body.interpolationType == SyncBody.InterpolationType.None)
                             // if no interpolation, then immediately apply the update
                             bodyUpdate.applyTo(body);
@@ -177,7 +178,7 @@ namespace Glint.Networking.EntitySystems {
                     case BodyLifetimeUpdate lifetimeUpdate: {
                         // we can ignore local lifetime updates
                         if (isLocalBodyUpdate) break;
-                        
+
                         if (!lifetimeUpdate.exists) {
                             // the body is supposed to be dead, destroy it
                             var body = findBodyById(entities, bodyUpdate.bodyId);
@@ -186,6 +187,7 @@ namespace Glint.Networking.EntitySystems {
                                     $"received a lifetime update to destroy an unknown body (id {bodyUpdate.bodyId})");
                                 break;
                             }
+
                             lifetimeUpdate.applyTo(body);
                             // remove snapshot cache
                             cachedKinStates.Remove(body);
@@ -251,9 +253,10 @@ namespace Glint.Networking.EntitySystems {
             foreach (var cachedKinState in cachedKinStates) {
                 var body = cachedKinState.Key;
                 var cache = cachedKinState.Value;
-                if (cache.stateBuf.Count < 2) continue;
-                var update0 = cache.stateBuf.peekAt(0); // previous
-                var update1 = cache.stateBuf.peekAt(1); // most recent
+                var interpDelay = 1;
+                if (cache.stateBuf.Count < interpDelay + 1) continue;
+                var update0 = cache.stateBuf.peekAt(interpDelay - 1); // previous
+                var update1 = cache.stateBuf.peekAt(interpDelay); // most recent
 
                 // calculate time discrepancy
                 var timeNow = NetworkTime.time();
