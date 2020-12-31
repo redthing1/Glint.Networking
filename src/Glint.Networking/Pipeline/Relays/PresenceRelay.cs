@@ -25,11 +25,9 @@ namespace Glint.Networking.Pipeline.Relays {
                 // save the user
                 var player = new NetPlayer(msg.myUid, msg.myNick);
                 context.server!.addPlayer(player);
-                return true;
             }
 
-            // we don't relay byes
-            return false;
+            return true;
         }
 
         protected override void postprocess(PresenceMessage msg) {
