@@ -19,13 +19,19 @@ namespace Glint.Networking.Pipeline.Relays {
 
         protected override bool process(BodyKinematicUpdateMessage msg) {
             var player = context.clients.SingleOrDefault(x => x.uid == msg.sourceUid);
-            if (player == null)
+            if (player == null) {
+                Global.log.trace($"kinematic update was for body with unknown owner: {msg} (from {msg.sourceUid})");
                 return false;
+            }
+
             var now = NetworkTime.time();
 
             var userBodies = context.scene.bodies[player];
             var body = userBodies.SingleOrDefault(x => x.id == msg.bodyId);
-            if (body == null) return false;
+            if (body == null) {
+                Global.log.trace($"kinematic update was for body with unknown body id ({msg.bodyId}): {msg} (from {msg.sourceUid})");
+                return false;
+            }
 
             body.lastReceivedTime = now;
             body.lastSnapshotTime = msg.time;
@@ -43,16 +49,21 @@ namespace Glint.Networking.Pipeline.Relays {
 
         protected override bool process(BodyLifetimeUpdateMessage msg) {
             var player = context.clients.SingleOrDefault(x => x.uid == msg.sourceUid);
-            if (player == null)
+            if (player == null) {
+                Global.log.trace($"lifetime update was for body with unknown owner: {msg} (from {msg.sourceUid})");
                 return false;
+            }
             var now = NetworkTime.time();
             if (msg.exists) {
                 // create
                 // TODO: assert not exists
                 var userBodies = context.scene.bodies[player];
-                if (userBodies.Any(x => x.id == msg.bodyId))
+                if (userBodies.Any(x => x.id == msg.bodyId)) {
+                    Global.log.trace($"lifetime update (create) was for a body ({msg.bodyId}) that already exists: {msg} (from {msg.sourceUid})");
                     return false;
-                userBodies.Add(new NetScene.Body(msg.sourceUid, msg.time, now, msg.bodyId, msg.syncTag, new PackedVec2(0, 0),
+                }
+                userBodies.Add(new NetScene.Body(msg.sourceUid, msg.time, now, msg.bodyId, msg.syncTag,
+                    new PackedVec2(0, 0),
                     new PackedVec2(0, 0), 0, 0));
             }
             else {
@@ -60,8 +71,10 @@ namespace Glint.Networking.Pipeline.Relays {
                 // TODO: assert exists
                 var userBodies = context.scene.bodies[player];
                 var body = userBodies.SingleOrDefault(x => x.id == msg.bodyId);
-                if (body == null)
+                if (body == null) {
+                    Global.log.trace($"lifetime update (destroy) was for a body ({msg.bodyId}) that doesn't exist: {msg} (from {msg.sourceUid})");
                     return false;
+                }
                 userBodies.Remove(body);
             }
 

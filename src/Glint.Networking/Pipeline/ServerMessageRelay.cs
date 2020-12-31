@@ -22,6 +22,7 @@ namespace Glint.Networking.Pipeline {
         protected virtual bool validate(TMessage msg) => true;
 
         public override bool handle(TMessage msg) {
+            var uid = msg.source.RemoteUniqueIdentifier;
             if (validate(msg)) {
                 if (process(msg)) {
                     context.serverNode!.sendToAll(msg); // redistribute the message
@@ -29,11 +30,11 @@ namespace Glint.Networking.Pipeline {
                     return true;
                 }
                 else {
-                    Global.log.err($"process-validation failed for {msg}");
+                    Global.log.err($"process-validation failed for {msg} (from {uid})");
                 }   
             }
             else {
-                Global.log.err($"pre-validation failed for {msg}");
+                Global.log.err($"pre-validation failed for {msg} (from {uid})");
             }
 
             return false;
