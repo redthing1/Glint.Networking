@@ -253,25 +253,35 @@ namespace Glint.Networking.EntitySystems {
             foreach (var cachedKinState in cachedKinStates) {
                 var body = cachedKinState.Key;
                 var cache = cachedKinState.Value;
-                var interpDelay = 1;
-                if (cache.stateBuf.Count < interpDelay + 1) continue;
-                var update0 = cache.stateBuf.peekAt(interpDelay - 1); // previous
-                var update1 = cache.stateBuf.peekAt(interpDelay); // most recent
+                var interpLag = cache.stateBuf.capacity - 1;
+                if (cache.stateBuf.Count < cache.stateBuf.capacity) continue;
+                var update0 = cache.stateBuf.peekAt(0); // start
+                var update1 = cache.stateBuf.peekAt(1); // end
 
                 // calculate time discrepancy
                 var timeNow = NetworkTime.time();
                 // time between stored frames
                 var timeDiff = (update1.data.time - update0.data.time) / 1000f;
-                // time since we received the most recent frame
-                var timeSince = (timeNow - update1.receivedAt) / 1000f;
+                // time since we received the last frame
+                var refRecvAt = update1.receivedAt; // time the end update was received
+                var frameTime = 1f / syncer.netUps; // expected timestep for each frame
+                var rawTimeSince = (timeNow - refRecvAt) / 1000f; // time since receiving the end update
+                var relTimeSince =
+                    rawTimeSince - frameTime * (interpLag - 1); // relative time (adjusting for interpolation lag)
 
                 // if our interpolation window exceeds the time window we received, skip
-                if (timeSince > timeDiff) {
+                if (relTimeSince > timeDiff) {
                     continue;
                 }
 
-                var interpT = (timeSince / timeDiff); // progress in interpolation
-                // Global.log.trace($"interpolate T: {interpT} (sincerecv={timeSince}, diff={timeDiff}");
+                var interpT = (relTimeSince / timeDiff); // progress in interpolation
+
+#if DEBUG
+                if (syncer.debug) {
+                    Global.log.trace(
+                        $"interpolate T: {interpT} (rawsince={rawTimeSince}, relsince={relTimeSince}, diff={timeDiff}");
+                }
+#endif
 
                 // // just apply directly
                 // update1.applyTo(body);
