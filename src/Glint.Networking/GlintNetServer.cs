@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
@@ -54,7 +53,7 @@ namespace Glint.Networking {
 
         public GlintNetServer(LimeServer node, GlintNetServerContext.Config config) {
             this.node = node;
-            
+
             context = new GlintNetServerContext(config);
             context.server = this;
 
@@ -62,7 +61,7 @@ namespace Glint.Networking {
             node.configureGlint();
             node.initialize();
             context.serverNode = node;
-            
+
             configureDefaultHandlers();
 
             Global.log.info("initialized networking host");
@@ -143,10 +142,10 @@ namespace Glint.Networking {
             // broadcast a goodbye on behalf of that peer
             var player = context.clients.SingleOrDefault(x => x.uid == peer.RemoteUniqueIdentifier);
             if (player == null) {
-                Global.log.err($"failed to send goodbyes on behalf of nonexistent peer {peer.RemoteUniqueIdentifier}");
+                Global.log.err($"got disconnect from unknown peer {peer.RemoteUniqueIdentifier}");
                 return;
             }
-            
+
             removePlayer(player);
             leftPlayerFollowUp(player);
         }
@@ -172,8 +171,9 @@ namespace Glint.Networking {
             foreach (var kvp in context.scene.bodies) {
                 sceneBodies.AddRange(kvp.Value);
             }
+
             if (sceneBodies.Count == 0) return;
-            
+
             // 2. send lifetime for all
             foreach (var body in sceneBodies) {
                 var msg = node.getMessage<BodyLifetimeUpdateMessage>();
@@ -183,7 +183,12 @@ namespace Glint.Networking {
         }
 
         internal void leftPlayerFollowUp(NetPlayer netPlayer) {
-            // clean up after a player who left
+            // send message on behalf
+            Global.log.trace($"sending goodbye on behalf of {netPlayer.uid}");
+            var bye = context.serverNode!.getMessage<PresenceMessage>();
+            bye.createFrom(netPlayer);
+            bye.here = false;
+            context.serverNode!.sendToAll(bye);
         }
     }
 }

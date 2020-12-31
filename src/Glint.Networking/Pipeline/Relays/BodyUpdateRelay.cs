@@ -17,11 +17,11 @@ namespace Glint.Networking.Pipeline.Relays {
     public class BodyKinematicUpdateRelay : BodyUpdateRelay<BodyKinematicUpdateMessage> {
         public BodyKinematicUpdateRelay(GlintNetServerContext context) : base(context) { }
 
-        protected override bool process(BodyKinematicUpdateMessage msg) {
+        protected override ProcessResult process(BodyKinematicUpdateMessage msg) {
             var player = context.clients.SingleOrDefault(x => x.uid == msg.sourceUid);
             if (player == null) {
                 Global.log.trace($"kinematic update was for body with unknown owner: {msg} (from {msg.sourceUid})");
-                return false;
+                return ProcessResult.Fail;
             }
 
             var now = NetworkTime.time();
@@ -30,7 +30,7 @@ namespace Glint.Networking.Pipeline.Relays {
             var body = userBodies.SingleOrDefault(x => x.id == msg.bodyId);
             if (body == null) {
                 Global.log.trace($"kinematic update was for body with unknown body id ({msg.bodyId}): {msg} (from {msg.sourceUid})");
-                return false;
+                return ProcessResult.Fail;
             }
 
             body.lastReceivedTime = now;
@@ -40,18 +40,18 @@ namespace Glint.Networking.Pipeline.Relays {
             body.angle = msg.angle;
             body.angularVelocity = msg.angularVelocity;
 
-            return true;
+            return ProcessResult.Relay;
         }
     }
 
     public class BodyLifetimeUpdateRelay : BodyUpdateRelay<BodyLifetimeUpdateMessage> {
         public BodyLifetimeUpdateRelay(GlintNetServerContext context) : base(context) { }
 
-        protected override bool process(BodyLifetimeUpdateMessage msg) {
+        protected override ProcessResult process(BodyLifetimeUpdateMessage msg) {
             var player = context.clients.SingleOrDefault(x => x.uid == msg.sourceUid);
             if (player == null) {
                 Global.log.trace($"lifetime update was for body with unknown owner: {msg} (from {msg.sourceUid})");
-                return false;
+                return ProcessResult.Fail;
             }
             var now = NetworkTime.time();
             if (msg.exists) {
@@ -60,7 +60,7 @@ namespace Glint.Networking.Pipeline.Relays {
                 var userBodies = context.scene.bodies[player];
                 if (userBodies.Any(x => x.id == msg.bodyId)) {
                     Global.log.trace($"lifetime update (create) was for a body ({msg.bodyId}) that already exists: {msg} (from {msg.sourceUid})");
-                    return false;
+                    return ProcessResult.Fail;
                 }
                 userBodies.Add(new NetScene.Body(msg.sourceUid, msg.time, now, msg.bodyId, msg.syncTag,
                     new PackedVec2(0, 0),
@@ -73,12 +73,12 @@ namespace Glint.Networking.Pipeline.Relays {
                 var body = userBodies.SingleOrDefault(x => x.id == msg.bodyId);
                 if (body == null) {
                     Global.log.trace($"lifetime update (destroy) was for a body ({msg.bodyId}) that doesn't exist: {msg} (from {msg.sourceUid})");
-                    return false;
+                    return ProcessResult.Fail;
                 }
                 userBodies.Remove(body);
             }
 
-            return true;
+            return ProcessResult.Relay;
         }
     }
 }

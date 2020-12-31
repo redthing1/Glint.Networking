@@ -17,7 +17,7 @@ namespace Glint.Networking.Pipeline.Relays {
             }
         }
 
-        protected override bool process(PresenceMessage msg) {
+        protected override ProcessResult process(PresenceMessage msg) {
             base.process(msg);
             var presence = msg.here ? "HERE" : "GONE";
             Global.log.info($"presence update from {msg.myUid}, {presence}");
@@ -25,9 +25,12 @@ namespace Glint.Networking.Pipeline.Relays {
                 // save the user
                 var player = new NetPlayer(msg.myUid, msg.myNick);
                 context.server!.addPlayer(player);
+                
+                return ProcessResult.Relay;
             }
-
-            return true;
+            
+            // leave message broadcast is handled by "leftPlayerFollowUp"
+            return ProcessResult.Done;
         }
 
         protected override void postprocess(PresenceMessage msg) {
