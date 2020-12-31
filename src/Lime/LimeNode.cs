@@ -126,7 +126,7 @@ namespace Lime {
         
         public void sendTo(NetConnection conn, LimeMessage message) {
             var packet = lidgrenPeer.CreateMessage();
-            message.write(packet);
+            msgFactory.write(packet, message);
             lidgrenPeer.SendMessage(packet, conn, message.deliveryMethod);
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Lidgren.Network;
 using Lime.Messages;
 using Lime.Utils;
 using scopely.msgpacksharp;
@@ -36,6 +37,11 @@ namespace Lime {
             catch (Exception e) {
                 return null;
             }
+        }
+        
+        public void write(NetOutgoingMessage packet, LimeMessage msg) {
+            packet.Write(msg.id);
+            packet.Write(MsgPackSerializer.SerializeObject(msg));
         }
 
         private void buildInstances(Assembly[] messageAssemblies) {
