@@ -19,13 +19,27 @@ namespace Glint.Networking.EntitySystems {
         public Func<string, uint, Entity?> createSyncedEntity;
         public const string SYNC_PREFIX = "_sync";
 
+        /// <summary>
+        /// the number of frames to cache for interpolation (affects latency of rendering updates)
+        /// MUST be at least 2
+        /// </summary>
+        private int interpCacheSize;
+
+        /// <summary>
+        /// cached body kinematic states
+        /// </summary>
         private Dictionary<SyncBody, KinStateCache> cachedKinStates = new Dictionary<SyncBody, KinStateCache>();
 
-        public RemoteBodySyncerSystem(GameSyncer syncer, Matcher matcher) :
+        public RemoteBodySyncerSystem(GameSyncer syncer, Matcher matcher, int interpCacheSize = 2) :
             base(matcher) {
             this.syncer = syncer;
             syncer.gamePeerConnected += gamePeerConnected;
             syncer.gamePeerDisconnected += gamePeerDisconnected;
+            this.interpCacheSize = interpCacheSize;
+            if (this.interpCacheSize < 2) {
+                throw new ApplicationException(
+                    $"invalid value {interpCacheSize} given for interpolation cache size. value must be at least 2.");
+            }
         }
 
         private void gamePeerDisconnected(NetPlayer peer) {
@@ -210,7 +224,7 @@ namespace Glint.Networking.EntitySystems {
                             entities.Add(syncNt);
 
                             // update cache
-                            cachedKinStates[body] = new KinStateCache();
+                            cachedKinStates[body] = new KinStateCache(interpCacheSize);
                         }
 
                         break;
