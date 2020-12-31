@@ -2,7 +2,7 @@ using Glint.Networking.Components;
 using Glint.Networking.Messages.Types;
 using MsgPack.Serialization;
 
-namespace Glint.Networking.Messages {
+namespace Glint.Networking.Pipeline.Messages {
     public class BodyKinematicUpdateMessage : BodyUpdateMessage {
         [MessagePackMember(4)] public PackedVec2 pos { get; set; }
         [MessagePackMember(5)] public PackedVec2 vel { get; set; }

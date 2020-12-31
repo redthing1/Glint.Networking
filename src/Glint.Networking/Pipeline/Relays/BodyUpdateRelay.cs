@@ -2,6 +2,7 @@ using System.Linq;
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
 using Glint.Networking.Messages.Types;
+using Glint.Networking.Pipeline.Messages;
 using Glint.Networking.Utils;
 
 namespace Glint.Networking.Pipeline.Relays {

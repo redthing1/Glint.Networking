@@ -1,8 +1,7 @@
 using Glint.Networking.Components;
-using Glint.Networking.Pipeline.Messages;
 using MsgPack.Serialization;
 
-namespace Glint.Networking.Messages {
+namespace Glint.Networking.Pipeline.Messages {
     public abstract class BodyUpdateMessage : GameUpdateMessage {
         [MessagePackMember(2)] public uint bodyId { get; set; }
         [MessagePackMember(3)] public uint syncTag { get; set; }

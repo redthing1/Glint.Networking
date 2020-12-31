@@ -1,5 +1,6 @@
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
+using Glint.Networking.Pipeline.Messages;
 using Glint.Physics;
 using Microsoft.Xna.Framework;
 using Nez;

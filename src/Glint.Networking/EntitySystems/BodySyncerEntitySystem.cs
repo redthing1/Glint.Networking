@@ -6,6 +6,7 @@ using Glint.Networking.Components;
 using Glint.Networking.Game;
 using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
+using Glint.Networking.Pipeline.Messages;
 using Glint.Networking.Utils;
 using Glint.Util;
 using Nez;
@@ -40,6 +41,9 @@ namespace Glint.Networking.EntitySystems {
                 throw new ApplicationException(
                     $"invalid value {interpCacheSize} given for interpolation cache size. value must be at least 2.");
             }
+            #if DEBUG
+            Global.log.trace($"body syncer interpolator cache size: {interpCacheSize}");
+            #endif
         }
 
         private void gamePeerDisconnected(NetPlayer peer) {

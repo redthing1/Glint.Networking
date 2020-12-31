@@ -6,6 +6,7 @@ using System.Threading;
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
 using Glint.Networking.Pipeline;
+using Glint.Networking.Pipeline.Messages;
 using Glint.Networking.Pipeline.Relays;
 using Lidgren.Network;
 using Lime;

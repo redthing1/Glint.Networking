@@ -1,7 +1,7 @@
 using Lidgren.Network;
 using MsgPack.Serialization;
 
-namespace Glint.Networking.Messages {
+namespace Glint.Networking.Pipeline.Messages {
     public class BodyLifetimeUpdateMessage : BodyUpdateMessage {
         [MessagePackMember(4)] public bool exists { get; set; }
 

@@ -1,6 +1,7 @@
 using Glint.Networking.Game;
 using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
+using Glint.Networking.Pipeline.Messages;
 
 namespace Glint.Networking.Pipeline.Handlers {
     public abstract class BodyUpdateHandler<TMessage> : ClientMessageHandler<TMessage> where TMessage : BodyUpdateMessage {

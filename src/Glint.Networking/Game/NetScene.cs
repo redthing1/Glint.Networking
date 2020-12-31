@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Glint.Networking.Messages;
 using Glint.Networking.Messages.Types;
+using Glint.Networking.Pipeline.Messages;
 
 namespace Glint.Networking.Game {
     public class NetScene {
