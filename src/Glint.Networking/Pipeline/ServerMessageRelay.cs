@@ -22,15 +22,19 @@ namespace Glint.Networking.Pipeline {
         protected virtual bool validate(TMessage msg) => true;
 
         public override bool handle(TMessage msg) {
-            var valid = validate(msg);
-            if (valid && process(msg)) {
-                context.serverNode.sendToAll(msg); // redistribute the message
-                postprocess(msg);
-                return true;
+            if (validate(msg)) {
+                if (process(msg)) {
+                    context.serverNode!.sendToAll(msg); // redistribute the message
+                    postprocess(msg);
+                    return true;
+                }
+                else {
+                    Global.log.err($"process-validation failed for {msg}");
+                }   
             }
-
-            // log validation error
-            Global.log.err($"validation failed for {msg}");
+            else {
+                Global.log.err($"pre-validation failed for {msg}");
+            }
 
             return false;
         }
