@@ -1,10 +1,10 @@
 using Lidgren.Network;
 using Lime.Messages;
-using MsgPack.Serialization;
+using MessagePack;
 
 namespace Glint.Networking.Messages {
     public class HeartbeatMessage : LimeMessage {
-        [MessagePackMember(0)] public bool alive { get; set; }
+        [Key(0)] public bool alive { get; set; }
         public override NetDeliveryMethod deliveryMethod => NetDeliveryMethod.Unreliable;
     }
 }

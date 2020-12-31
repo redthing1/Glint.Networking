@@ -1,12 +1,12 @@
 using Glint.Networking.Utils;
 using Lidgren.Network;
 using Lime.Messages;
-using MsgPack.Serialization;
+using MessagePack;
 
 namespace Glint.Networking.Pipeline.Messages {
     public abstract class GameUpdateMessage : LimeMessage {
-        [MessagePackMember(0)] public long time { get; set; }
-        [MessagePackMember(1)] public long sourceUid { get; set; }
+        [Key(0)] public long time { get; set; }
+        [Key(1)] public long sourceUid { get; set; }
 
         public override NetDeliveryMethod deliveryMethod => NetDeliveryMethod.UnreliableSequenced;
         

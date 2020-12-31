@@ -1,15 +1,12 @@
 using Lidgren.Network;
+using MessagePack;
 using scopely.msgpacksharp;
 
 namespace Lime.Messages {
+    [MessagePackObject]
     public abstract class LimeMessage {
-        public byte id { get; set; }
-        public NetConnection source { get; set; }
-        public abstract NetDeliveryMethod deliveryMethod { get; }
-
-        public void write(NetOutgoingMessage packet) {
-            packet.Write(id);
-            packet.Write(MsgPackSerializer.SerializeObject(this));
-        }
+        [IgnoreMember] public byte id { get; set; }
+        [IgnoreMember] public NetConnection source { get; set; }
+        [IgnoreMember] public abstract NetDeliveryMethod deliveryMethod { get; }
     }
 }

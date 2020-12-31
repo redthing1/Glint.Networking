@@ -1,13 +1,13 @@
 using Glint.Networking.Components;
 using Glint.Networking.Messages.Types;
-using MsgPack.Serialization;
+using MessagePack;
 
 namespace Glint.Networking.Messages {
     public class BodyKinematicUpdateMessage : BodyUpdateMessage {
-        [MessagePackMember(4)] public PackedVec2 pos { get; set; }
-        [MessagePackMember(5)] public PackedVec2 vel { get; set; }
-        [MessagePackMember(6)] public float angle { get; set; }
-        [MessagePackMember(7)] public float angularVelocity { get; set; }
+        [Key(4)] public PackedVec2 pos { get; set; }
+        [Key(5)] public PackedVec2 vel { get; set; }
+        [Key(6)] public float angle { get; set; }
+        [Key(7)] public float angularVelocity { get; set; }
 
         public override void createFrom(SyncBody body) {
             base.createFrom(body);

@@ -1,13 +1,13 @@
 using Glint.Networking.Game;
 using Lidgren.Network;
 using Lime.Messages;
-using MsgPack.Serialization;
+using MessagePack;
 
 namespace Glint.Networking.Messages {
     public class PresenceMessage : LimeMessage {
-        [MessagePackMember(0)] public long myUid { get; set; }
-        [MessagePackMember(1)] public bool here { get; set; }
-        [MessagePackMember(1)] public string myNick { get; set; }
+        [Key(0)] public long myUid { get; set; }
+        [Key(1)] public bool here { get; set; }
+        [Key(1)] public string myNick { get; set; }
 
         public override NetDeliveryMethod deliveryMethod => NetDeliveryMethod.ReliableOrdered;
 

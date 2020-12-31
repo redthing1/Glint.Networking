@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Lidgren.Network;
 using Lime.Messages;
 using Lime.Utils;
+using MessagePack;
 using scopely.msgpacksharp;
 
 namespace Lime {
@@ -10,6 +12,9 @@ namespace Lime {
         private Dictionary<byte, LimeMessage> messages = new Dictionary<byte, LimeMessage>();
         private Dictionary<Type, LimeMessage> messagesByType = new Dictionary<Type, LimeMessage>();
         private Action<Verbosity, string> log;
+
+        private MessagePackSerializerOptions serializerOptions = MessagePackSerializerOptions.Standard
+            .WithSecurity(MessagePackSecurity.UntrustedData).WithCompression(MessagePackCompression.Lz4BlockArray);
 
         internal LimeMessageFactory() { }
 
@@ -30,12 +35,19 @@ namespace Lime {
             int offset = 1;
             var result = messages[buffer[0]]; // get matching instance
             try {
+                MessagePackSerializer.Deserialize()
                 MsgPackSerializer.DeserializeObject(result, buffer, offset);
                 return result;
             }
             catch (Exception e) {
                 return null;
             }
+        }
+
+        public void write(NetOutgoingMessage packet, LimeMessage msg) {
+            packet.Write(msg.id);
+            var pack = MessagePackSerializer.Serialize(msg, serializerOptions);
+            packet.Write(pack);
         }
 
         private void buildInstances(Assembly[] messageAssemblies) {
