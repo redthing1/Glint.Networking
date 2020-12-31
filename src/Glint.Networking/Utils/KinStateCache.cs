@@ -7,6 +7,7 @@ namespace Glint.Networking.Utils {
         
         /// <summary>
         /// the number of frames to cache for interpolation (affects latency of rendering updates)
+        /// MUST be at least 2
         /// 
         /// </summary>
         public const int INTERPOLATION_CACHE_SIZE = 2;
