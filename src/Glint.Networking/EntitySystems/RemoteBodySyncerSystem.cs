@@ -5,7 +5,6 @@ using System.Reflection;
 using Glint.Networking.Components;
 using Glint.Networking.Game;
 using Glint.Networking.Game.Updates;
-using Glint.Networking.Messages;
 using Glint.Networking.Pipeline.Messages;
 using Glint.Networking.Utils;
 using Glint.Util;
@@ -20,20 +19,6 @@ namespace Glint.Networking.EntitySystems {
         public Func<string, uint, Entity?> createSyncedEntity;
         public const string SYNC_PREFIX = "_sync";
 
-        [Flags]
-        public enum SyncType : int {
-            None = 0,
-            Pos = 1 << 0,
-            Vel = 1 << 1,
-            Angle = 1 << 2,
-            AngularVel = 1 << 3,
-            PosAngle = Pos | Angle,
-            VelAngularVel = Vel | AngularVel,
-            All = PosAngle | VelAngularVel,
-        }
-
-        public SyncType syncType;
-
         /// <summary>
         /// the number of frames to cache for interpolation (affects latency of rendering updates)
         /// MUST be at least 2
@@ -45,13 +30,12 @@ namespace Glint.Networking.EntitySystems {
         /// </summary>
         private Dictionary<SyncBody, KinStateCache> cachedKinStates = new Dictionary<SyncBody, KinStateCache>();
 
-        public RemoteBodySyncerSystem(GameSyncer syncer, Matcher matcher, SyncType syncType = SyncType.PosAngle,
+        public RemoteBodySyncerSystem(GameSyncer syncer, Matcher matcher,
             int interpCacheSize = 2) :
             base(matcher) {
             this.syncer = syncer;
             syncer.gamePeerConnected += gamePeerConnected;
             syncer.gamePeerDisconnected += gamePeerDisconnected;
-            this.syncType = syncType;
             this.interpCacheSize = interpCacheSize;
             if (this.interpCacheSize < 2) {
                 throw new ApplicationException(
@@ -191,19 +175,19 @@ namespace Glint.Networking.EntitySystems {
 
                         if (body.interpolationType == SyncBody.InterpolationType.None) {
                             // if no interpolation, then immediately apply the update
-                            if (syncType.HasFlag(SyncType.Pos)) {
+                            if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Pos)) {
                                 body.pos = kinUpdate.pos.unpack();
                             }
 
-                            if (syncType.HasFlag(SyncType.Vel)) {
+                            if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Vel)) {
                                 body.velocity = kinUpdate.vel.unpack();
                             }
 
-                            if (syncType.HasFlag(SyncType.Angle)) {
+                            if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Angle)) {
                                 body.angle = kinUpdate.angle;
                             }
 
-                            if (syncType.HasFlag(SyncType.AngularVel)) {
+                            if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.AngularVel)) {
                                 body.angularVelocity = kinUpdate.angularVelocity;
                             }
                         }
@@ -337,21 +321,21 @@ namespace Glint.Networking.EntitySystems {
 
                 switch (body.interpolationType) {
                     case SyncBody.InterpolationType.Linear:
-                        if (syncType.HasFlag(SyncType.Pos)) {
+                        if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Pos)) {
                             body.pos = InterpolationUtil.lerp(update0.data.pos.unpack(), update1.data.pos.unpack(),
                                 interpT);
                         }
 
-                        if (syncType.HasFlag(SyncType.Vel)) {
+                        if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Vel)) {
                             body.velocity = InterpolationUtil.lerp(update0.data.vel.unpack(), update1.data.vel.unpack(),
                                 interpT);
                         }
 
-                        if (syncType.HasFlag(SyncType.Angle)) {
+                        if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Angle)) {
                             body.angle = InterpolationUtil.lerp(update0.data.angle, update1.data.angle, interpT);
                         }
 
-                        if (syncType.HasFlag(SyncType.AngularVel)) {
+                        if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.AngularVel)) {
                             body.angularVelocity = InterpolationUtil.lerp(update0.data.angularVelocity,
                                 update1.data.angularVelocity,
                                 interpT);
@@ -359,24 +343,24 @@ namespace Glint.Networking.EntitySystems {
 
                         break;
                     case SyncBody.InterpolationType.Hermite:
-                        if (syncType.HasFlag(SyncType.Pos)) {
+                        if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Pos)) {
                             body.pos = InterpolationUtil.hermite(update0.data.pos.unpack(), update1.data.pos.unpack(),
                                 update0.data.vel.unpack() * Time.DeltaTime, update1.data.vel.unpack() * Time.DeltaTime,
                                 interpT);
                         }
 
-                        if (syncType.HasFlag(SyncType.Vel)) {
+                        if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Vel)) {
                             body.velocity = InterpolationUtil.lerp(update0.data.vel.unpack(), update1.data.vel.unpack(),
                                 interpT);
                         }
 
-                        if (syncType.HasFlag(SyncType.Angle)) {
+                        if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Angle)) {
                             body.angle = InterpolationUtil.hermite(update0.data.angle, update1.data.angle,
                                 update0.data.angularVelocity * Time.DeltaTime,
                                 update1.data.angularVelocity * Time.DeltaTime, interpT);
                         }
 
-                        if (syncType.HasFlag(SyncType.AngularVel)) {
+                        if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.AngularVel)) {
                             body.angularVelocity = InterpolationUtil.lerp(update0.data.angularVelocity,
                                 update1.data.angularVelocity,
                                 interpT);

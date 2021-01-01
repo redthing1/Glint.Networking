@@ -1,3 +1,4 @@
+using System;
 using Glint.Networking.Game;
 using Glint.Networking.Messages;
 using Glint.Networking.Pipeline.Messages;
@@ -16,11 +17,24 @@ namespace Glint.Networking.Components {
 
         public abstract uint bodyType { get; }
         public abstract InterpolationType interpolationType { get; }
+        public virtual InterpolatedFields interpolatedFields { get; } = InterpolatedFields.All;
 
         public enum InterpolationType {
             None,
             Linear, // linear interpolation
             Hermite, // hermite splines
+        }
+        
+        [Flags]
+        public enum InterpolatedFields : int {
+            None = 0,
+            Pos = 1 << 0,
+            Vel = 1 << 1,
+            Angle = 1 << 2,
+            AngularVel = 1 << 3,
+            PosAngle = Pos | Angle,
+            VelAngularVel = Vel | AngularVel,
+            All = PosAngle | VelAngularVel,
         }
 
         public void cancelTweens() {
