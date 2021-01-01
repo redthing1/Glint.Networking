@@ -173,7 +173,15 @@ namespace Glint.Networking.EntitySystems {
                             break;
                         }
 
-                        if (body.interpolationType == SyncBody.InterpolationType.None) {
+                        if (isLocalBodyUpdate) {
+                            // we do a sanity check to make sure our local entity isn't desynced
+                            var wasDesynced = resolveLocalDesync(body, kinUpdate);
+                            if (wasDesynced) {
+                                Global.log.trace(
+                                    $"resolved desync for body {body}");
+                            }
+                        }
+                        else if (body.interpolationType == SyncBody.InterpolationType.None) {
                             // if no interpolation, then immediately apply the update
                             if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.Pos)) {
                                 body.pos = kinUpdate.pos.unpack();
@@ -189,14 +197,6 @@ namespace Glint.Networking.EntitySystems {
 
                             if (body.interpolatedFields.HasFlag(SyncBody.InterpolatedFields.AngularVel)) {
                                 body.angularVelocity = kinUpdate.angularVelocity;
-                            }
-                        }
-                        else if (isLocalBodyUpdate) {
-                            // we do a sanity check to make sure our local entity isn't desynced
-                            var wasDesynced = resolveLocalDesync(body, kinUpdate);
-                            if (wasDesynced) {
-                                Global.log.trace(
-                                    $"resolved desync for body {body}");
                             }
                         }
                         else {
