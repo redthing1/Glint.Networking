@@ -308,6 +308,7 @@ namespace Glint.Networking.EntitySystems {
                 }
 
                 var interpT = (relTimeSince / timeDiff); // progress in interpolation
+                if (timeDiff == 0) interpT = 1; // protect from NaN
 
 #if DEBUG
                 if (syncer.debug) {
