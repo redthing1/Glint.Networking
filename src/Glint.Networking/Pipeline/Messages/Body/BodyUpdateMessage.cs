@@ -8,7 +8,7 @@ namespace Glint.Networking.Pipeline.Messages {
 
         public virtual void createFrom(SyncBody body) {
             bodyId = body.bodyId;
-            syncTag = body.bodyType;
+            syncTag = body.tag;
         }
     }
 }

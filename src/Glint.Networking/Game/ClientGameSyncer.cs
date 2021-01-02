@@ -4,10 +4,11 @@ using Nez;
 
 namespace Glint.Networking.Game {
     public class ClientGameSyncer : GameSyncer {
-        public ClientGameSyncer(LimeClient node, string host, int port, string nickname, int netUps, int systemUps, int ringBufferSize, bool debug = false) :
-            base(node, host, port, nickname, netUps, systemUps, ringBufferSize, debug) { }
+        public ClientGameSyncer(LimeClient node, string host, int port, string nickname, int netUps, int bodyUps,
+            bool debug = false) :
+            base(node, host, port, nickname, netUps, bodyUps, debug) { }
 
-        public new LimeClient node => (LimeClient) base.netNode;
+        public new LimeClient node => (LimeClient) base.node;
 
         public void connect() {
             // open connection and go

@@ -2,30 +2,37 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Glint.Networking.Components;
 using Glint.Networking.Game.Updates;
 using Glint.Networking.Messages;
 using Glint.Networking.Pipeline;
 using Glint.Networking.Pipeline.Handlers;
 using Glint.Networking.Pipeline.Messages;
-using Glint.Networking.Utils.Collections;
-using Glint.Util;
 using Lidgren.Network;
 using Lime;
 using Lime.Messages;
 using Nez;
-using Random = Nez.Random;
 
 namespace Glint.Networking.Game {
     /// <summary>
     /// connects to a game server and fill message queues with data
     /// </summary>
-    public class GameSyncer : IDisposable {
-        public LimeNode netNode { get; }
+    public abstract class GameSyncer : IDisposable {
+        /// <summary>
+        /// the underlying networking node
+        /// </summary>
+        public LimeNode node { get; }
+
+        /// <summary>
+        /// updates per second for sending network packets
+        /// </summary>
         public int netUps { get; }
-        public int systemUps { get; }
-        public int ringBufferSize { get; }
+
+        /// <summary>
+        /// updates per second for snapshotting synced bodies
+        /// </summary>
+        public int bodyUps { get; }
+
         public List<NetPlayer> peers { get; } = new List<NetPlayer>();
         public bool connected;
         public Action<bool> connectionStatusChanged;
@@ -39,53 +46,69 @@ namespace Glint.Networking.Game {
         /// </summary>
         public ConcurrentQueue<ConnectivityUpdate> connectivityUpdates { get; } =
             new ConcurrentQueue<ConnectivityUpdate>();
+
         /// <summary>
         /// incoming body updates
         /// </summary>
         public ConcurrentQueue<BodyUpdate> incomingBodyUpdates { get; }
+
+        /// <summary>
+        /// outgoing game updates
+        /// </summary>
         public ConcurrentQueue<GameUpdateMessage> outgoingGameUpdates { get; }
-        
+
         protected ITimer nodeUpdateTimer;
-        
+
         // - properties
-        public long uid => netNode.uid;
+        public long uid => node.uid;
+
+        /// <summary>
+        /// the hostname to connect to
+        /// </summary>
         public string host { get; }
+
+        /// <summary>
+        /// the port to connect to
+        /// </summary>
         public int port { get; }
+
+        /// <summary>
+        /// a human-friendly player nickname to identify the current player
+        /// </summary>
         public string nickname { get; }
 #if DEBUG
         public bool debug { get; }
 #endif
 
-        public GameSyncer(LimeNode node, string host, int port, string nickname, int netUps, int systemUps, int ringBufferSize,
+        public GameSyncer(LimeNode node, string host, int port, string nickname, int netUps, int bodyUps,
             bool debug = false) {
-            this.netNode = node;
+            this.node = node;
             this.host = host;
             this.port = port;
             this.nickname = nickname;
             this.netUps = netUps;
-            this.systemUps = systemUps;
-            this.ringBufferSize = ringBufferSize;
+            this.bodyUps = bodyUps;
 #if DEBUG
             this.debug = debug;
 #endif
 
-            netNode.configureGlint();
-            netNode.initialize();
+            this.node.configureGlint();
+            this.node.initialize();
 
             incomingBodyUpdates = new ConcurrentQueue<BodyUpdate>();
             outgoingGameUpdates = new ConcurrentQueue<GameUpdateMessage>();
-            
+
             // wire events
-            netNode.onPeerConnected += onPeerConnected;
-            netNode.onPeerDisconnected += onPeerDisconnected;
-            netNode.onMessage += onMessage;
-            netNode.onUpdate += onUpdate;
-            
+            this.node.onPeerConnected += onPeerConnected;
+            this.node.onPeerDisconnected += onPeerDisconnected;
+            this.node.onMessage += onMessage;
+            this.node.onUpdate += onUpdate;
+
             registerHandlers();
         }
 
         public bool ownsBody(SyncBody body) {
-            return body.owner == netNode.uid;
+            return body.owner == node.uid;
         }
 
         private void registerHandlers() {
@@ -97,12 +120,12 @@ namespace Glint.Networking.Game {
             handlers.register(new BodyLifetimeUpdateHandler(this));
         }
 
-        public void stop() {
-            netNode.stop(); // throw away our network node
+        public virtual void stop() {
+            node.stop(); // throw away our network node
         }
 
         public TGameUpdate createGameUpdate<TGameUpdate>() where TGameUpdate : GameUpdateMessage {
-            var msg = netNode.getMessage<TGameUpdate>();
+            var msg = node.getMessage<TGameUpdate>();
             msg.reset();
             return msg;
         }
@@ -120,8 +143,8 @@ namespace Glint.Networking.Game {
         /// </summary>
         /// <param name="msg"></param>
         public void sendGameUpdate(GameUpdateMessage msg) {
-            msg.sourceUid = netNode.uid;
-            netNode.sendToAll(msg);
+            msg.sourceUid = node.uid;
+            node.sendToAll(msg);
         }
 
         private void preprocessGameUpdate(GameUpdateMessage msg) {
@@ -135,15 +158,15 @@ namespace Glint.Networking.Game {
                 //     ConnectivityUpdate.ConnectionStatus.Connected));
             }
         }
-        
-        private void onUpdate() {
+
+        protected virtual void onUpdate() {
             // pump outgoing messages
             while (outgoingGameUpdates.TryDequeue(out var msg)) {
                 sendGameUpdate(msg);
             }
         }
 
-        public void onMessage(LimeMessage msg) {
+        protected virtual void onMessage(LimeMessage msg) {
             var msgType = msg.GetType();
             if (msg is GameUpdateMessage gameUpdateMessage) {
                 // preprocess all game updates
@@ -172,18 +195,18 @@ namespace Glint.Networking.Game {
             }
         }
 
-        public void onPeerConnected(NetConnection peer) {
+        protected virtual void onPeerConnected(NetConnection peer) {
             Global.log.info($"connected new peer {peer}");
             // once peer (server) connected, send intro
             // introduce myself to everyone else
-            var intro = netNode.getMessage<PresenceMessage>();
-            intro.myUid = netNode.uid;
+            var intro = node.getMessage<PresenceMessage>();
+            intro.myUid = node.uid;
             intro.here = true;
             intro.myNick = nickname;
-            netNode.sendToAll(intro);
+            node.sendToAll(intro);
         }
 
-        public void onPeerDisconnected(NetConnection peer) {
+        protected virtual void onPeerDisconnected(NetConnection peer) {
             Global.log.info($"disconnected peer {peer}");
 
             Global.log.err("confirmed disconnected from server");
@@ -191,11 +214,11 @@ namespace Glint.Networking.Game {
             connectionStatusChanged?.Invoke(connected);
         }
 
-        public void Dispose() {
-            netNode.onPeerConnected = null;
-            netNode.onPeerDisconnected = null;
-            netNode.onMessage = null;
-            netNode.onUpdate = null;
+        public virtual void Dispose() {
+            node.onPeerConnected = null;
+            node.onPeerDisconnected = null;
+            node.onMessage = null;
+            node.onUpdate = null;
         }
     }
 }

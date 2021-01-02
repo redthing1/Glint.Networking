@@ -63,7 +63,7 @@ namespace Glint.Networking.Components {
         public bool isLocal {
             get {
                 // check if owned by me
-                return owner == syncer?.uid;
+                return syncer?.ownsBody(this) ?? false;
             }
         }
 
