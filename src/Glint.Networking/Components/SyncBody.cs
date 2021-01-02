@@ -12,8 +12,6 @@ namespace Glint.Networking.Components {
         public float nextUpdate = 0;
         public uint bodyId = (uint) Nez.Random.NextInt(int.MaxValue);
         public long owner;
-        public ITween<Vector2>? posTween;
-        public ITween<float>? angleTween;
 
         public abstract uint bodyType { get; }
         public abstract InterpolationType interpolationType { get; }
@@ -37,20 +35,6 @@ namespace Glint.Networking.Components {
             All = PosAngle | VelAngularVel,
         }
 
-        public void cancelTweens() {
-            if (posTween?.IsRunning() ?? false) {
-                posTween.Stop();
-            }
-
-            posTween = null;
-
-            if (angleTween?.IsRunning() ?? false) {
-                angleTween.Stop();
-            }
-
-            angleTween = null;
-        }
-
         public void sendLifetimeCreated() {
             var syncer = Core.Services.GetService<ClientGameSyncer>();
             // check if owned by me
@@ -70,7 +54,6 @@ namespace Glint.Networking.Components {
 
         public override void OnRemovedFromEntity() {
             base.OnRemovedFromEntity();
-            cancelTweens();
 
             var syncer = Core.Services.GetService<ClientGameSyncer>();
             // check if owned by me
