@@ -1,28 +1,48 @@
 using System;
 using Glint.Networking.Game;
-using Glint.Networking.Messages;
 using Glint.Networking.Pipeline.Messages;
 using Glint.Physics;
-using Microsoft.Xna.Framework;
 using Nez;
-using Nez.Tweens;
+using Random = Nez.Random;
 
 namespace Glint.Networking.Components {
     public abstract class SyncBody : KinBody {
-        public float nextUpdate = 0;
-        public uint bodyId = (uint) Nez.Random.NextInt(int.MaxValue);
-        public long owner;
+        /// <summary>
+        /// when the body's state will be snapshotted again (controlled by syncer bodyUps)
+        /// </summary>
+        internal float nextUpdate = 0;
 
-        public abstract uint bodyType { get; }
+        /// <summary>
+        /// the unique identifier of this body
+        /// </summary>
+        public uint bodyId = (uint) Random.NextInt(int.MaxValue);
+
+        /// <summary>
+        /// the uid of the client that owns this body
+        /// </summary>
+        public long owner { get; internal set; }
+
+        /// <summary>
+        /// a custom field (optionally to be used to identify the type of entity this body is part of)
+        /// </summary>
+        public abstract uint tag { get; }
+
+        /// <summary>
+        /// specifies the interpolation method to use when syncing this body's properties
+        /// </summary>
         public abstract InterpolationType interpolationType { get; }
-        public virtual InterpolatedFields interpolatedFields { get; } = InterpolatedFields.All;
+
+        /// <summary>
+        /// specifies the fields of this body that are synced
+        /// </summary>
+        public virtual InterpolatedFields syncedFields { get; } = InterpolatedFields.All;
 
         public enum InterpolationType {
             None,
             Linear, // linear interpolation
             Hermite, // hermite splines
         }
-        
+
         [Flags]
         public enum InterpolatedFields : int {
             None = 0,
@@ -35,12 +55,22 @@ namespace Glint.Networking.Components {
             All = PosAngle | VelAngularVel,
         }
 
-        public void sendLifetimeCreated() {
-            var syncer = Core.Services.GetService<ClientGameSyncer>();
-            // check if owned by me
-            if (owner == syncer?.uid) {
+        private ClientGameSyncer? syncer => Core.Services.GetService<ClientGameSyncer>();
+
+        /// <summary>
+        /// whether the body is owned by the local syncer
+        /// </summary>
+        public bool isLocal {
+            get {
+                // check if owned by me
+                return owner == syncer?.uid;
+            }
+        }
+
+        internal void sendLifetimeCreated() {
+            if (isLocal) {
                 // send create signal
-                var lifetimeMessage = syncer.createGameUpdate<BodyLifetimeUpdateMessage>();
+                var lifetimeMessage = syncer!.createGameUpdate<BodyLifetimeUpdateMessage>();
                 lifetimeMessage.createFrom(this);
                 lifetimeMessage.exists = true;
                 syncer.sendGameUpdate(lifetimeMessage);
@@ -52,14 +82,10 @@ namespace Glint.Networking.Components {
             }
         }
 
-        public override void OnRemovedFromEntity() {
-            base.OnRemovedFromEntity();
-
-            var syncer = Core.Services.GetService<ClientGameSyncer>();
-            // check if owned by me
-            if (owner == syncer?.uid) {
+        internal void sendLifetimeDestroyed() {
+            if (isLocal) {
                 // send destroy signal
-                var lifetimeMessage = syncer.createGameUpdate<BodyLifetimeUpdateMessage>();
+                var lifetimeMessage = syncer!.createGameUpdate<BodyLifetimeUpdateMessage>();
                 lifetimeMessage.createFrom(this);
                 lifetimeMessage.exists = false;
                 syncer.sendGameUpdate(lifetimeMessage);
@@ -69,6 +95,12 @@ namespace Glint.Networking.Components {
                 }
 #endif
             }
+        }
+
+        public override void OnRemovedFromEntity() {
+            sendLifetimeDestroyed();
+
+            base.OnRemovedFromEntity();
         }
     }
 }
