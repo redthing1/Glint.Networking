@@ -17,6 +17,12 @@ namespace Glint.Networking.EntitySystems {
     public class RemoteBodySyncerSystem : EntitySystem {
         private readonly GameSyncer syncer;
         public Func<string, uint, Entity?> createSyncedEntity;
+
+        /// <summary>
+        /// callback to be called before a synced entity is destroyed (because it no longer exists remotely)
+        /// </summary>
+        public Action<Entity, SyncBody> beforeSyncedEntityDestroyed;
+
         public const string SYNC_PREFIX = "_sync";
 
         /// <summary>
@@ -30,6 +36,13 @@ namespace Glint.Networking.EntitySystems {
         /// </summary>
         private Dictionary<SyncBody, KinStateCache> cachedKinStates = new Dictionary<SyncBody, KinStateCache>();
 
+        /// <summary>
+        /// instantiates a remote body syncer system
+        /// </summary>
+        /// <param name="syncer">the syncer</param>
+        /// <param name="matcher">the matcher of entities whose bodies to sync</param>
+        /// <param name="interpCacheSize">size (>=2) of the kinematic snapshot ring-buffer cache</param>
+        /// <exception cref="ApplicationException">thrown if an invalid value is given for interpCacheSize</exception>
         public RemoteBodySyncerSystem(GameSyncer syncer, Matcher matcher,
             int interpCacheSize = 2) :
             base(matcher) {
@@ -95,6 +108,7 @@ namespace Glint.Networking.EntitySystems {
                     // make sure this peer still exists, and that the body isn't orphaned
                     if (syncer.peers.All(x => x.uid != body.owner)) {
                         // peer no longer exists!
+                        beforeSyncedEntityDestroyed?.Invoke(entity, body);
                         orphanEntities.Add(entity);
                         Global.log.trace($"removing body for nonexistent peer {body.owner}");
                         cachedKinStates.Remove(body); // remove from cache
@@ -221,6 +235,7 @@ namespace Glint.Networking.EntitySystems {
                                 break;
                             }
 
+                            beforeSyncedEntityDestroyed?.Invoke(body.Entity, body);
                             lifetimeUpdate.applyTo(body);
                             // remove snapshot cache
                             cachedKinStates.Remove(body);
